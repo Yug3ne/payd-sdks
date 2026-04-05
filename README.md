@@ -1,6 +1,6 @@
 # Payd SDKs
 
-Official SDKs for the [Payd](https://payd.money) payments API — collect payments, send payouts, and manage transactions across Africa.
+Sdks for the [Payd](https://payd.money) payments API — collect payments, send payouts, and manage transactions across Africa.
 
 ## Packages
 
