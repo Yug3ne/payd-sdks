@@ -1,5 +1,5 @@
 {
-  "name": "@payd-money/node",
+  "name": "payd-node-sdk",
   "version": "0.1.0",
   "description": "Payd SDK for Node.js — collect payments, send payouts, and manage transactions across Africa",
   "author": "Eugene <yugenecodes99@gmail.com>",
