@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/payd-money/payd-sdks.git",
+    "url": "https://github.com/Yug3ne/payd-sdks.git",
     "directory": "node"
   },
   "homepage": "https://docs.payd.money",
