@@ -1,0 +1,15 @@
+{
+  "name": "payd-sdk-test-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Interactive test dashboard for the @payd-money/node SDK",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@payd-money/node": "file:../node",
+    "express": "^5.1.0"
+  }
+}
