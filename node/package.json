@@ -1,8 +1,8 @@
 {
   "name": "@payd-money/node",
   "version": "0.1.0",
-  "description": "Official Payd SDK for Node.js — collect payments, send payouts, and manage transactions across Africa",
-  "author": "Payd <developers@payd.money>",
+  "description": "Payd SDK for Node.js — collect payments, send payouts, and manage transactions across Africa",
+  "author": "Eugene <yugenecodes99@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
