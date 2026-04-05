@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payd SDK Test App</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <h1>Payd SDK Test App</h1>
+    <span class="tag">@payd-money/node</span>
+  </div>
+  <div class="header-actions">
+    <div class="config-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Not connected</span>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="runAll()">Run All Tests</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- ── Main Panel ─────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Run All Results (hidden until run) -->
+    <div id="runAllPanel" style="display:none">
+      <div class="section-title">Test Results</div>
+      <div class="card">
+        <div class="card-body">
+          <div class="run-all-summary" id="runAllSummary"></div>
+          <div class="run-all-results" id="runAllResults"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Configuration ────────────────────────────────────────────── -->
+    <div class="section-title">Configuration</div>
+    <div class="card" id="configCard">
+      <div class="card-header" onclick="toggleCard('configBody')">
+        <h3>API Credentials</h3>
+        <span class="badge badge-idle" id="configBadge">configure</span>
+      </div>
+      <div class="card-body" id="configBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>API Username</label>
+            <input type="text" id="cfgApiUsername" placeholder="your_api_username">
+          </div>
+          <div class="form-group">
+            <label>API Password</label>
+            <input type="password" id="cfgApiPassword" placeholder="your_api_password">
+          </div>
+          <div class="form-group">
+            <label>Default Payd Username</label>
+            <input type="text" id="cfgUsername" placeholder="your_payd_username">
+          </div>
+          <div class="form-group">
+            <label>Default Callback URL</label>
+            <input type="text" id="cfgCallbackUrl">
+          </div>
+          <div class="form-group">
+            <label>Wallet Type</label>
+            <select id="cfgWalletType">
+              <option value="local">local (KES)</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Base URL</label>
+            <input type="text" id="cfgBaseUrl" placeholder="https://api.payd.money">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveConfig()">Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Balances ──────────────────────────────────────────────────── -->
+    <div class="section-title">Resources</div>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('balancesBody')">
+        <div><span class="card-category">Balances</span><h3 style="display:inline">Get All</h3></div>
+        <span class="badge badge-idle" id="balances-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="balancesBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Username (optional — uses default)</label>
+            <input type="text" id="bal-username" placeholder="Uses default">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execBalances()">Execute</button>
+        </div>
+        <div id="balances-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Networks ──────────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('networksBody')">
+        <div><span class="card-category">Networks</span><h3 style="display:inline">Discover</h3></div>
+        <span class="badge badge-idle" id="networks-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="networksBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Transaction Type</label>
+            <select id="net-type">
+              <option value="receipt">receipt (collections)</option>
+              <option value="withdrawal">withdrawal (payouts)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Dial Code</label>
+            <input type="text" id="net-dialCode" value="+256">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execNetworks()">Discover</button>
+        </div>
+        <div id="networks-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Transaction Status ────────────────────────────────────────── -->
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('txStatusBody')">
+        <div><span class="card-category">Transactions</span><h3 style="display:inline">Get Status</h3></div>
+        <span class="badge badge-idle" id="txstatus-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="txStatusBody">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Transaction Reference</label>
+            <input type="text" id="tx-ref" placeholder="9BD103350408eR">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execTxStatus()">Look Up</button>
+        </div>
+        <div id="txstatus-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Collections ───────────────────────────────────────────────── -->
+    <div class="section-title">Collections (Payins)</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('mpesaCollBody')">
+        <div><span class="card-category">Collections</span><h3 style="display:inline">M-Pesa STK Push</h3></div>
+        <span class="badge badge-idle" id="coll-mpesa-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="mpesaCollBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Amount (KES, 10–250,000)</label>
+            <input type="number" id="cm-amount" value="10">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="cm-phone" value="0700000000">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="cm-narration" value="SDK test — M-Pesa collection">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execCollMpesa()">Execute</button>
+        </div>
+        <div id="coll-mpesa-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('cardCollBody')">
+        <div><span class="card-category">Collections</span><h3 style="display:inline">Card Payment</h3></div>
+        <span class="badge badge-idle" id="coll-card-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="cardCollBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Amount (KES, min 100)</label>
+            <input type="number" id="cc-amount" value="101">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="cc-phone" value="0700000000">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="cc-narration" value="SDK test — Card payment">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execCollCard()">Execute</button>
+        </div>
+        <div id="coll-card-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('panCollBody')">
+        <div><span class="card-category">Collections</span><h3 style="display:inline">Pan-African</h3></div>
+        <span class="badge badge-idle" id="coll-pan-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="panCollBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Account Name</label>
+            <select id="cp-accountName"><option value="phone">phone</option><option value="bank">bank</option></select>
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="cp-amount" value="1800">
+          </div>
+          <div class="form-group">
+            <label>Phone Number (+country code)</label>
+            <input type="text" id="cp-phone" value="+2340000000000">
+          </div>
+          <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" id="cp-accountNumber" value="0000000000">
+          </div>
+          <div class="form-group">
+            <label>Network Code (from Discovery)</label>
+            <input type="text" id="cp-networkCode" placeholder="UUID from networks.discover()">
+          </div>
+          <div class="form-group">
+            <label>Channel ID (from Discovery)</label>
+            <input type="text" id="cp-channelId" placeholder="UUID from networks.discover()">
+          </div>
+          <div class="form-group">
+            <label>Transaction Channel</label>
+            <select id="cp-txChannel"><option value="phone">phone</option><option value="bank">bank</option></select>
+          </div>
+          <div class="form-group">
+            <label>Currency</label>
+            <input type="text" id="cp-currency" value="NGN">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="cp-narration" value="SDK test — Pan-African collection">
+          </div>
+          <div class="form-group full">
+            <label>Redirect URL (optional, for South Africa)</label>
+            <input type="text" id="cp-redirectUrl" placeholder="https://your-site.com/redirect">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execCollPan()">Execute</button>
+        </div>
+        <div id="coll-pan-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Payouts ───────────────────────────────────────────────────── -->
+    <div class="section-title">Payouts</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('mpesaPayBody')">
+        <div><span class="card-category">Payouts</span><h3 style="display:inline">M-Pesa</h3></div>
+        <span class="badge badge-idle" id="pay-mpesa-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="mpesaPayBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="pm-phone" value="0700000000">
+          </div>
+          <div class="form-group">
+            <label>Amount (KES, 10–250,000)</label>
+            <input type="number" id="pm-amount" value="10">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="pm-narration" value="SDK test — M-Pesa payout">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execPayMpesa()">Execute</button>
+        </div>
+        <div id="pay-mpesa-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('merchantBody')">
+        <div><span class="card-category">Payouts</span><h3 style="display:inline">Merchant (Paybill/Till)</h3></div>
+        <span class="badge badge-idle" id="pay-merchant-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="merchantBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Amount (KES)</label>
+            <input type="number" id="pmerch-amount" value="12">
+          </div>
+          <div class="form-group">
+            <label>Phone Number (+country code)</label>
+            <input type="text" id="pmerch-phone" value="+254700000000">
+          </div>
+          <div class="form-group">
+            <label>Business Account (Paybill/Till)</label>
+            <input type="text" id="pmerch-bizAcct" value="123456">
+          </div>
+          <div class="form-group">
+            <label>Business Number (Account #)</label>
+            <input type="text" id="pmerch-bizNum" value="9876543210">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="pmerch-narration" value="SDK test — Merchant payout">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execPayMerchant()">Execute</button>
+        </div>
+        <div id="pay-merchant-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('panPayBody')">
+        <div><span class="card-category">Payouts</span><h3 style="display:inline">Pan-African</h3></div>
+        <span class="badge badge-idle" id="pay-pan-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="panPayBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Account Name</label>
+            <select id="pp-accountName"><option value="bank">bank</option><option value="phone">phone</option></select>
+          </div>
+          <div class="form-group">
+            <label>Account Holder Name</label>
+            <input type="text" id="pp-holderName" value="John Doe">
+          </div>
+          <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" id="pp-accountNumber" value="0000000000">
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="pp-amount" value="1800">
+          </div>
+          <div class="form-group">
+            <label>Phone Number (+country code)</label>
+            <input type="text" id="pp-phone" value="+2340000000000">
+          </div>
+          <div class="form-group">
+            <label>Currency</label>
+            <input type="text" id="pp-currency" value="NGN">
+          </div>
+          <div class="form-group">
+            <label>Network Code</label>
+            <input type="text" id="pp-networkCode" placeholder="UUID from discover()">
+          </div>
+          <div class="form-group">
+            <label>Channel ID</label>
+            <input type="text" id="pp-channelId" placeholder="UUID from discover()">
+          </div>
+          <div class="form-group">
+            <label>Transaction Channel</label>
+            <select id="pp-txChannel"><option value="bank">bank</option><option value="phone">phone</option></select>
+          </div>
+          <div class="form-group">
+            <label>Provider Name</label>
+            <input type="text" id="pp-providerName" value="OPay">
+          </div>
+          <div class="form-group">
+            <label>Provider Code</label>
+            <input type="text" id="pp-providerCode" value="100004">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="pp-narration" value="SDK test — Pan-African payout">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execPayPan()">Execute</button>
+        </div>
+        <div id="pay-pan-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Transfers ─────────────────────────────────────────────────── -->
+    <div class="section-title">Transfers</div>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('transferBody')">
+        <div><span class="card-category">Transfers</span><h3 style="display:inline">Payd-to-Payd</h3></div>
+        <span class="badge badge-idle" id="transfer-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="transferBody">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Receiver Username</label>
+            <input type="text" id="tr-receiver" value="recipient_username">
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input type="number" id="tr-amount" value="10">
+          </div>
+          <div class="form-group">
+            <label>Phone Number (optional)</label>
+            <input type="text" id="tr-phone" value="+254700000000">
+          </div>
+          <div class="form-group full">
+            <label>Narration</label>
+            <input type="text" id="tr-narration" value="SDK test — P2P transfer">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execTransfer()">Execute</button>
+        </div>
+        <div id="transfer-result"></div>
+      </div>
+    </div>
+
+    <!-- ── Webhooks ──────────────────────────────────────────────────── -->
+    <div class="section-title">Webhooks</div>
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('whParseBody')">
+        <div><span class="card-category">Webhooks</span><h3 style="display:inline">Parse Event</h3></div>
+        <span class="badge badge-idle" id="wh-parse-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="whParseBody">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Webhook JSON Body (paste a raw payload)</label>
+            <textarea id="wh-body" rows="6"></textarea>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execWhParse()">Parse</button>
+          <button class="btn btn-sm" onclick="loadFixture('kenya-success')">Kenya Success</button>
+          <button class="btn btn-sm" onclick="loadFixture('kenya-failure')">Kenya Failure</button>
+          <button class="btn btn-sm" onclick="loadFixture('pan-success')">Pan-African Success</button>
+          <button class="btn btn-sm" onclick="loadFixture('pan-failure')">Pan-African Failure</button>
+        </div>
+        <div id="wh-parse-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggleCard('whVerifyBody')">
+        <div><span class="card-category">Webhooks</span><h3 style="display:inline">Verify Signature</h3></div>
+        <span class="badge badge-idle" id="wh-verify-badge">idle</span>
+      </div>
+      <div class="card-body collapsed" id="whVerifyBody">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Body (JSON string)</label>
+            <textarea id="whv-body" rows="3">{"transaction_reference":"TEST123","success":true}</textarea>
+          </div>
+          <div class="form-group">
+            <label>Signature (hex)</label>
+            <input type="text" id="whv-sig" placeholder="HMAC-SHA256 hex">
+          </div>
+          <div class="form-group">
+            <label>Secret</label>
+            <input type="text" id="whv-secret" placeholder="webhook_secret">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="execWhVerify()">Verify</button>
+        </div>
+        <div id="wh-verify-result"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Sidebar: Live Webhooks ──────────────────────────────────────── -->
+  <div class="sidebar">
+    <h2>Live Webhook Events</h2>
+    <div class="subtitle" id="webhookUrl"></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="btn btn-sm" onclick="copyWebhookUrl()">Copy URL</button>
+      <button class="btn btn-sm btn-danger" onclick="clearWebhooks()">Clear</button>
+    </div>
+    <div id="webhookList">
+      <div class="no-events">No events yet. Webhooks will appear here in real time.</div>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
