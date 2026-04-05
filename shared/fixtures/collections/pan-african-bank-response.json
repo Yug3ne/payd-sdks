@@ -1,0 +1,16 @@
+{
+  "payment_method": "mobile",
+  "status": "SUCCESS",
+  "bank_account": {
+    "name": "PAGA",
+    "branch_code": "",
+    "account_number": "0755758717",
+    "account_name": "Dummy Account Name",
+    "account_reference": "9BD110816195eR"
+  },
+  "transaction_reference": "9BD110816195eR",
+  "success": true,
+  "trackingId": "",
+  "reference": "",
+  "result": null
+}

@@ -1,0 +1,17 @@
+{
+  "username": "your_payd_username",
+  "network_code": "344f1324-11fb-4875-bd74-fbb43cd2b32d",
+  "account_name": "bank",
+  "account_holder_name": "John Doe",
+  "account_number": "0000000000",
+  "amount": 1800,
+  "phone_number": "+2340000000000",
+  "channel_id": "fe8f4989-3bf6-41ca-9621-ffe2bc127569",
+  "narration": "Payment for goods",
+  "currency": "NGN",
+  "callback_url": "https://your-server.com/callback",
+  "transaction_channel": "bank",
+  "channel": "bank",
+  "provider_name": "OPay",
+  "provider_code": "100004"
+}

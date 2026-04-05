@@ -1,0 +1,10 @@
+{
+  "payment_method": "mobile",
+  "status": "SUCCESS",
+  "transaction_reference": "9BD110009989eR",
+  "success": true,
+  "message": "processing",
+  "trackingId": "",
+  "reference": "",
+  "result": null
+}

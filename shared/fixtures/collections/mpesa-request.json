@@ -1,0 +1,9 @@
+{
+  "username": "your_payd_username",
+  "channel": "MPESA",
+  "amount": 10,
+  "phone_number": "0700000000",
+  "narration": "Payment for goods",
+  "currency": "KES",
+  "callback_url": "https://your-server.com/callback"
+}

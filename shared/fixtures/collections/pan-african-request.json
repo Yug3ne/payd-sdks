@@ -1,0 +1,14 @@
+{
+  "username": "your_payd_username",
+  "account_name": "bank",
+  "amount": 1800,
+  "phone_number": "+2340000000000",
+  "account_number": "0000000000",
+  "network_code": "344f1324-11fb-4875-bd74-fbb43cd2b32d",
+  "channel_id": "af944f0c-ba70-47c7-86dc-1bad5a6ab4e4",
+  "redirect_url": "https://your-server.com/redirect",
+  "narration": "Payment for goods",
+  "currency": "NGN",
+  "callback_url": "https://your-server.com/callback",
+  "transaction_channel": "bank"
+}

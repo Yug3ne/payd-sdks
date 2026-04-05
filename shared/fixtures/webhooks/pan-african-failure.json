@@ -1,0 +1,10 @@
+{
+  "transaction_reference": "9BD110009989eR",
+  "result_code": 3000,
+  "remarks": "other",
+  "transaction_date": "2026-02-09 11:11:38.71307619 +0000 UTC m=+13396.698281768",
+  "forward_url": "https://your-server.com/callback",
+  "order_id": "",
+  "success": false,
+  "status": "failed"
+}

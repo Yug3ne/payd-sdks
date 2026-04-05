@@ -1,0 +1,8 @@
+{
+  "phone_number": "0700000000",
+  "amount": 100,
+  "narration": "Withdrawal request",
+  "callback_url": "https://your-server.com/callback",
+  "channel": "MPESA",
+  "currency": "KES"
+}

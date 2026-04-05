@@ -1,0 +1,12 @@
+{
+  "fiat_balance": {
+    "balance": 37767.63,
+    "converted_balance": 37767.63,
+    "currency": "KES"
+  },
+  "onchain_balance": {
+    "balance": 29065,
+    "converted_balance": 29065,
+    "currency": "USD"
+  }
+}

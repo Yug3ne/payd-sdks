@@ -1,0 +1,41 @@
+{
+  "defaults": [],
+  "mobile": [
+    {
+      "id": "0cca95de-c028-48fd-8806-45b4e32fe6f1",
+      "code": "Mobile Money",
+      "updated_at": "0001-01-01T00:00:00Z",
+      "status": "active",
+      "account_number_type": "phone",
+      "country": "UG",
+      "name": "Mobile Money",
+      "channel_ids": [
+        "e167def0-c4f0-46e2-aaa9-50046f13b0a7",
+        "e573694c-d9d2-4511-8dec-aa633baf19f3"
+      ],
+      "selected_channel_id": "e573694c-d9d2-4511-8dec-aa633baf19f3",
+      "country_account_number_type": "UGPHONE",
+      "min_amount": 15000,
+      "max_amount": 3000000
+    }
+  ],
+  "banks": [
+    {
+      "id": "28281f21-4705-431f-a752-9a485628c76a",
+      "code": "",
+      "updated_at": "0001-01-01T00:00:00Z",
+      "status": "active",
+      "account_number_type": "bank",
+      "country": "ALL",
+      "name": "Manual Input",
+      "channel_ids": [
+        "1239227d-f33a-4d7a-8520-0a0cf41988fb",
+        "3afcad16-1f7c-469b-853e-57c216ef2f36"
+      ],
+      "selected_channel_id": "48f72484-f2a5-4bef-8bc1-f57ccd1c837d",
+      "country_account_number_type": "ALLBANK",
+      "min_amount": 15000,
+      "max_amount": 36000000
+    }
+  ]
+}

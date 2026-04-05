@@ -1,0 +1,11 @@
+{
+  "payment_method": "mobile",
+  "status": "SUCCESS",
+  "checkout_url": "https://pay.pesapal.com/iframe/PesapalIframe3/Index?OrderTrackingId=example-tracking-id",
+  "transaction_reference": "9BD114038965eR",
+  "success": true,
+  "message": "Payment request sent successfully",
+  "trackingId": "",
+  "reference": "",
+  "result": null
+}

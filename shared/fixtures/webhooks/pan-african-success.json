@@ -1,0 +1,14 @@
+{
+  "transaction_reference": "9BD113419309eW",
+  "result_code": 0,
+  "remarks": "complete",
+  "third_party_trans_id": "9BD113419309eW",
+  "amount": 132.61,
+  "transaction_date": "2026-02-09 11:34:42.692858332 +0000 UTC m=+451424.989475964",
+  "forward_url": "https://your-server.com/callback",
+  "order_id": "",
+  "user_id": "0de616fc-61f7-46e2-aa36-4c9eda58ed37",
+  "customer_name": "+250700000000",
+  "success": true,
+  "web3_transaction_reference": ""
+}

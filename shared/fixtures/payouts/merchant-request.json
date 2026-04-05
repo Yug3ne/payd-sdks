@@ -1,0 +1,12 @@
+{
+  "username": "your_payd_username",
+  "amount": 12,
+  "currency": "KES",
+  "phone_number": "+254700000000",
+  "narration": "Payment for goods",
+  "transaction_channel": "bank",
+  "channel": "bank",
+  "business_account": "123456",
+  "business_number": "9876543210",
+  "callback_url": "https://your-server.com/callback"
+}

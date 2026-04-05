@@ -1,0 +1,14 @@
+{
+  "transaction_reference": "9BD103739849eR",
+  "result_code": 0,
+  "remarks": "Successfully processes m-pesa transaction",
+  "third_party_trans_id": "UB9C46DH3Q",
+  "amount": 10,
+  "transaction_date": "2026-02-09 10:37:50.286784611 +0000 UTC m=+448005.605396772",
+  "forward_url": "https://your-server.com/callback",
+  "order_id": "",
+  "user_id": "0de616fc-61f7-46e2-aa36-4c9eda58ed37",
+  "customer_name": "",
+  "success": true,
+  "web3_transaction_reference": ""
+}

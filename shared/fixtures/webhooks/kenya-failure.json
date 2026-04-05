@@ -1,0 +1,10 @@
+{
+  "transaction_reference": "9BD104311505eR",
+  "result_code": 1,
+  "remarks": "Transaction failed with message: [Request Cancelled by user.]",
+  "transaction_date": "November",
+  "forward_url": "https://your-server.com/callback",
+  "order_id": "",
+  "success": false,
+  "status": ""
+}
