@@ -5,7 +5,7 @@ import {
   PaydAuthenticationError,
   PaydNetworkError,
   PaydWebhookVerificationError,
-} from "@payd-money/node";
+} from "payd-node-sdk";
 
 let client = null;
 let currentConfig = null;

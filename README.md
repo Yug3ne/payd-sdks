@@ -6,7 +6,7 @@ Official SDKs for the [Payd](https://payd.money) payments API — collect paymen
 
 | Package | Language | Status | Install |
 |---------|----------|--------|---------|
-| [`@payd-money/node`](./node) | TypeScript / Node.js | Stable | `npm install @payd-money/node` |
+| [`payd-node-sdk`](./node) | TypeScript / Node.js | Stable | `npm install payd-node-sdk` |
 
 ## Repository Structure
 
@@ -26,11 +26,11 @@ payd-sdks/
 ### Node.js SDK
 
 ```bash
-npm install @payd-money/node
+npm install payd-node-sdk
 ```
 
 ```typescript
-import { PaydClient } from "@payd-money/node";
+import { PaydClient } from "payd-node-sdk";
 
 const payd = new PaydClient({
   apiUsername: process.env.PAYD_API_USERNAME!,
@@ -103,13 +103,13 @@ npm install /path/to/payd-sdks/node
 cd /path/to/payd-sdks/node
 npm link
 cd /path/to/your-project
-npm link @payd-money/node
+npm link payd-node-sdk
 ```
 
 Then use it normally:
 
 ```typescript
-import { PaydClient } from "@payd-money/node";
+import { PaydClient } from "payd-node-sdk";
 
 const payd = new PaydClient({
   apiUsername: process.env.PAYD_API_USERNAME!,

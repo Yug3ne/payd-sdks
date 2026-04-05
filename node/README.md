@@ -1,11 +1,11 @@
-# @payd-money/node
+# payd-node-sdk
 
 Official Payd SDK for Node.js — collect payments, send payouts, and manage transactions across Africa.
 
 ## Installation
 
 ```bash
-npm install @payd-money/node
+npm install payd-node-sdk
 ```
 
 Requires Node.js 18+.
@@ -13,7 +13,7 @@ Requires Node.js 18+.
 ## Quick Start
 
 ```typescript
-import { PaydClient } from "@payd-money/node";
+import { PaydClient } from "payd-node-sdk";
 
 const payd = new PaydClient({
   apiUsername: process.env.PAYD_API_USERNAME!,
@@ -226,7 +226,7 @@ import {
   PaydAPIError,
   PaydAuthenticationError,
   PaydNetworkError,
-} from "@payd-money/node";
+} from "payd-node-sdk";
 
 try {
   await payd.collections.mpesa({ ... });

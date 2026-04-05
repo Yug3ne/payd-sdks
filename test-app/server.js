@@ -10,7 +10,7 @@ import {
 } from "./lib/sdk-client.js";
 import { fixtures } from "./lib/fixtures.js";
 import { tests } from "./lib/test-suite.js";
-import { Webhooks } from "@payd-money/node";
+import { Webhooks } from "payd-node-sdk";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3456;

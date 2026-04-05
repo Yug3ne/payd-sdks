@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Interactive test dashboard for the @payd-money/node SDK",
+  "description": "Interactive test dashboard for the payd-node-sdk",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "@payd-money/node": "file:../node",
+    "payd-node-sdk": "file:../node",
     "express": "^5.1.0"
   }
 }

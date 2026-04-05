@@ -28,7 +28,7 @@ export interface RequestOptions {
  *
  * @example
  * ```typescript
- * import { PaydClient } from "@payd-money/node";
+ * import { PaydClient } from "payd-node-sdk";
  *
  * const payd = new PaydClient({
  *   apiUsername: "your_api_username",

@@ -1,9 +1,9 @@
 /**
- * @payd-money/node — Official Payd SDK for Node.js
+ * payd-node-sdk — Official Payd SDK for Node.js
  *
  * @example
  * ```typescript
- * import { PaydClient } from "@payd-money/node";
+ * import { PaydClient } from "payd-node-sdk";
  *
  * const payd = new PaydClient({
  *   apiUsername: process.env.PAYD_API_USERNAME!,
