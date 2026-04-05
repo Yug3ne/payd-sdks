@@ -285,7 +285,7 @@ For Python and PHP, use the language's native naming convention (snake_case for 
 | M-Pesa Payout | POST | `/api/v2/withdrawal` | phone_number, amount, narration, callback_url, channel="MPESA", currency="KES", wallet_type? |
 | Pan-African Payout | POST | `/api/v2/payments` | username, network_code, account_name, account_holder_name, account_number, amount, phone_number, channel_id, narration, currency, callback_url, transaction_channel, channel, provider_name, provider_code, wallet_type? |
 | Merchant Payout | POST | `/api/v3/withdrawal` | username, amount, currency="KES", phone_number, narration, transaction_channel="bank", channel="bank", business_account, business_number, callback_url, wallet_type? |
-| P2P Transfer | POST | `/api/v2/remittance` | receiver_username, amount, narration, phone_number?, currency?, wallet_type? |
+| P2P Transfer | POST | `/api/v2/p2p` | receiver_username, amount, narration, phone_number?, currency?, wallet_type? |
 | Balances | GET | `/api/v1/accounts/{username}/all_balances` | — |
 | Transaction Status | GET | `/api/v1/status/{ref}` | — |
 | Network Discovery | GET | `/v2/networks/grouped` | query: transaction_type, dial_code |

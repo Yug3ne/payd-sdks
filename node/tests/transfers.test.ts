@@ -36,7 +36,7 @@ describe("Transfers", () => {
     expect(result.transactionReference).toBe("9BD12041887.eS");
   });
 
-  it("should send to /api/v2/remittance", async () => {
+  it("should send to /api/v2/p2p", async () => {
     mockFetch.mockResolvedValueOnce(mockResponse(transferResponse));
 
     await payd.transfers.send({
@@ -46,7 +46,7 @@ describe("Transfers", () => {
     });
 
     const [url] = mockFetch.mock.calls[0];
-    expect(url).toContain("/api/v2/remittance");
+    expect(url).toContain("/api/v2/p2p");
   });
 
   it("should reject missing receiverUsername", async () => {
