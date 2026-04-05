@@ -62,7 +62,7 @@ export class Transfers {
 
     const data = await this.client.request({
       method: "POST",
-      path: "/api/v2/p2p",
+      path: "/api/v2/remittance",
       body,
     });
 
