@@ -27,9 +27,9 @@ describe("Balances", () => {
 
     const result = await payd.balances.getAll("my_user");
 
-    expect(result.fiatBalance.balance).toBe(37767.63);
+    expect(result.fiatBalance.balance).toBe(1000.00);
     expect(result.fiatBalance.currency).toBe("KES");
-    expect(result.onchainBalance.balance).toBe(29065);
+    expect(result.onchainBalance.balance).toBe(500);
     expect(result.onchainBalance.currency).toBe("USD");
   });
 

@@ -1,5 +1,5 @@
 {
-  "id": "559084cb-3ab0-4131-a161-9b08231a60d3",
+  "id": "00000000-0000-4000-a000-000000000001",
   "account_id": "",
   "billing_currency": "",
   "currency": "KES",
@@ -7,7 +7,7 @@
   "conversion_rate": 0,
   "amount": 10000,
   "billing_currency_amount": 0,
-  "balance": 4109741.52,
+  "balance": 50000.00,
   "type": "receipt",
   "transaction_details": {
     "payer": "+254700000000",
@@ -19,7 +19,7 @@
     },
     "reason": "Successfully processes m-pesa transaction",
     "channel": "mobile",
-    "account_number": "9654793f-c567-439f-9403-3dafaf6eaf81",
+    "account_number": "00000000-0000-4000-a000-000000000002",
     "status": "success",
     "receiver": "Your Business Name",
     "email_address": "you@example.com"

@@ -2,7 +2,7 @@
   "defaults": [],
   "mobile": [
     {
-      "id": "0cca95de-c028-48fd-8806-45b4e32fe6f1",
+      "id": "aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee",
       "code": "Mobile Money",
       "updated_at": "0001-01-01T00:00:00Z",
       "status": "active",
@@ -10,10 +10,10 @@
       "country": "UG",
       "name": "Mobile Money",
       "channel_ids": [
-        "e167def0-c4f0-46e2-aaa9-50046f13b0a7",
-        "e573694c-d9d2-4511-8dec-aa633baf19f3"
+        "11111111-2222-4333-4444-555555555555",
+        "66666666-7777-4888-9999-aaaaaaaaaaaa"
       ],
-      "selected_channel_id": "e573694c-d9d2-4511-8dec-aa633baf19f3",
+      "selected_channel_id": "66666666-7777-4888-9999-aaaaaaaaaaaa",
       "country_account_number_type": "UGPHONE",
       "min_amount": 15000,
       "max_amount": 3000000
@@ -21,7 +21,7 @@
   ],
   "banks": [
     {
-      "id": "28281f21-4705-431f-a752-9a485628c76a",
+      "id": "bbbbbbbb-cccc-4ddd-eeee-ffffffffffff",
       "code": "",
       "updated_at": "0001-01-01T00:00:00Z",
       "status": "active",
@@ -29,10 +29,10 @@
       "country": "ALL",
       "name": "Manual Input",
       "channel_ids": [
-        "1239227d-f33a-4d7a-8520-0a0cf41988fb",
-        "3afcad16-1f7c-469b-853e-57c216ef2f36"
+        "cccccccc-dddd-4eee-ffff-111111111111",
+        "dddddddd-eeee-4fff-0000-222222222222"
       ],
-      "selected_channel_id": "48f72484-f2a5-4bef-8bc1-f57ccd1c837d",
+      "selected_channel_id": "eeeeeeee-ffff-4000-1111-333333333333",
       "country_account_number_type": "ALLBANK",
       "min_amount": 15000,
       "max_amount": 36000000

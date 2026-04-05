@@ -48,7 +48,7 @@ export function getClient() {
   return client;
 }
 
-/** Get the current config (credentials masked) */
+/** Get the current config (password omitted) */
 export function getConfig() {
   if (!currentConfig) return null;
   return {

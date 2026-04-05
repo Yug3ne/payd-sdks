@@ -31,8 +31,8 @@ describe("Networks", () => {
       expect(result.mobile).toHaveLength(1);
       expect(result.banks).toHaveLength(1);
       expect(result.mobile[0].name).toBe("Mobile Money");
-      expect(result.mobile[0].id).toBe("0cca95de-c028-48fd-8806-45b4e32fe6f1");
-      expect(result.mobile[0].selectedChannelId).toBe("e573694c-d9d2-4511-8dec-aa633baf19f3");
+      expect(result.mobile[0].id).toBe("aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee");
+      expect(result.mobile[0].selectedChannelId).toBe("66666666-7777-4888-9999-aaaaaaaaaaaa");
       expect(result.mobile[0].minAmount).toBe(15000);
       expect(result.mobile[0].maxAmount).toBe(3000000);
     });
@@ -69,7 +69,7 @@ describe("Networks", () => {
       const network = result.findMobile("mobile money");
 
       expect(network.name).toBe("Mobile Money");
-      expect(network.id).toBe("0cca95de-c028-48fd-8806-45b4e32fe6f1");
+      expect(network.id).toBe("aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee");
     });
 
     it("should find by partial name match", async () => {
@@ -98,8 +98,8 @@ describe("Networks", () => {
       const network = result.findMobile("Mobile Money");
       const params = network.toPaymentParams();
 
-      expect(params.networkCode).toBe("0cca95de-c028-48fd-8806-45b4e32fe6f1");
-      expect(params.channelId).toBe("e573694c-d9d2-4511-8dec-aa633baf19f3");
+      expect(params.networkCode).toBe("aaaaaaaa-bbbb-4ccc-dddd-eeeeeeeeeeee");
+      expect(params.channelId).toBe("66666666-7777-4888-9999-aaaaaaaaaaaa");
       expect(params.transactionChannel).toBe("phone");
       expect(params.providerName).toBe("Mobile Money");
       expect(params.providerCode).toBe("Mobile Money");

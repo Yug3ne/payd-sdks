@@ -137,8 +137,8 @@ const result = await payd.transfers.send({
 
 ```typescript
 const balances = await payd.balances.getAll("my_payd_user");
-console.log(balances.fiatBalance);    // { balance: 37767.63, currency: "KES" }
-console.log(balances.onchainBalance); // { balance: 29065, currency: "USD" }
+console.log(balances.fiatBalance);    // { balance: 1000.00, currency: "KES" }
+console.log(balances.onchainBalance); // { balance: 500, currency: "USD" }
 ```
 
 ### Transaction Status

@@ -16,9 +16,9 @@ export class Balances {
    * @example
    * ```typescript
    * const balances = await payd.balances.getAll("my_payd_user");
-   * console.log(balances.fiatBalance.balance);    // 37767.63
+   * console.log(balances.fiatBalance.balance);    // 1000.00
    * console.log(balances.fiatBalance.currency);   // "KES"
-   * console.log(balances.onchainBalance.balance); // 29065
+   * console.log(balances.onchainBalance.balance); // 500
    * console.log(balances.onchainBalance.currency);// "USD"
    * ```
    */

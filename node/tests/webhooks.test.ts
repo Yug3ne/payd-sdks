@@ -24,7 +24,7 @@ describe("Webhooks", () => {
       expect(event.remarks).toBe("Successfully processes m-pesa transaction");
       expect(event.thirdPartyTransId).toBe("UB9C46DH3Q");
       expect(event.amount).toBe(10);
-      expect(event.userId).toBe("0de616fc-61f7-46e2-aa36-4c9eda58ed37");
+      expect(event.userId).toBe("00000000-0000-4000-a000-000000000001");
     });
 
     it("should parse Kenya M-Pesa failure webhook", () => {

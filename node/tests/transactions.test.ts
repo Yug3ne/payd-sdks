@@ -27,7 +27,7 @@ describe("Transactions", () => {
 
     const result = await payd.transactions.getStatus("9BD103350408eR");
 
-    expect(result.id).toBe("559084cb-3ab0-4131-a161-9b08231a60d3");
+    expect(result.id).toBe("00000000-0000-4000-a000-000000000001");
     expect(result.currency).toBe("KES");
     expect(result.code).toBe("9BD103350408eR");
     expect(result.transactionReference).toBe("9BD103350408eR");
@@ -36,7 +36,7 @@ describe("Transactions", () => {
     expect(result.transactionDetails.status).toBe("success");
     expect(result.transactionDetails.payer).toBe("+254700000000");
     expect(result.transactionDetails.channel).toBe("mobile");
-    expect(result.balance).toBe(4109741.52);
+    expect(result.balance).toBe(50000.00);
   });
 
   it("should send to correct URL with encoded reference", async () => {
