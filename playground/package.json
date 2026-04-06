@@ -5,11 +5,16 @@
   "type": "module",
   "description": "Interactive test dashboard for the payd-node-sdk",
   "scripts": {
+    "build": "esbuild public/app.js --bundle --minify --outfile=public/app.min.js",
+    "prestart": "npm run build",
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "npm run build && node --watch server.js"
   },
   "dependencies": {
-    "payd-node-sdk": "^0.1.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "payd-node-sdk": "^0.1.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
   }
 }

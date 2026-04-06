@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 *.tsbuildinfo
+playground/public/app.min.js
 
 # Environment and secrets
 .env
