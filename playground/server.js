@@ -16,14 +16,38 @@ import { Webhooks } from "payd-node-sdk";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3456;
+const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
 app.set("trust proxy", true);
-app.use(express.json());
+app.use(express.json({ limit: "256kb" }));
 app.use(express.static(join(__dirname, "public")));
 
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  if (isProduction) {
+    res.setHeader(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload",
+    );
+  }
+  next();
+});
+
 function getDefaultCallbackUrl(req) {
-  if (process.env.PAYD_CALLBACK_URL) return process.env.PAYD_CALLBACK_URL;
+  const sessionId = req && isSafeSessionId(req.sessionId) ? req.sessionId : null;
+  const withSession = (baseUrl) => {
+    if (!sessionId) return baseUrl;
+    const separator = baseUrl.includes("?") ? "&" : "?";
+    return `${baseUrl}${separator}sid=${encodeURIComponent(sessionId)}`;
+  };
+
+  if (process.env.PAYD_CALLBACK_URL) return withSession(process.env.PAYD_CALLBACK_URL);
 
   const externalBaseUrl =
     process.env.PUBLIC_BASE_URL ||
@@ -35,7 +59,7 @@ function getDefaultCallbackUrl(req) {
     const normalizedBaseUrl = externalBaseUrl.startsWith("http")
       ? externalBaseUrl
       : `https://${externalBaseUrl}`;
-    return `${normalizedBaseUrl.replace(/\/$/, "")}/api/webhooks/receive`;
+    return withSession(`${normalizedBaseUrl.replace(/\/$/, "")}/api/webhooks/receive`);
   }
 
   if (req) {
@@ -43,10 +67,10 @@ function getDefaultCallbackUrl(req) {
     const forwardedHost = req.get("x-forwarded-host");
     const host = forwardedHost || req.get("host");
     const protocol = forwardedProto || req.protocol || "http";
-    if (host) return `${protocol}://${host}/api/webhooks/receive`;
+    if (host) return withSession(`${protocol}://${host}/api/webhooks/receive`);
   }
 
-  return `http://localhost:${PORT}/api/webhooks/receive`;
+  return withSession(`http://localhost:${PORT}/api/webhooks/receive`);
 }
 
 function getRequestBaseUrl(req) {
@@ -61,6 +85,18 @@ function getRequestBaseUrl(req) {
 
 const SESSION_COOKIE_NAME = "payd_playground_sid";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
+const MAX_EVENTS = 100;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX = {
+  global: 240,
+  config: 20,
+  runAll: 3,
+  webhookReceive: 120,
+};
+const rateLimits = new Map();
+
+const sessionWebhookEvents = new Map();
+const sessionSseClients = new Map();
 
 function parseCookies(req) {
   const raw = req.headers.cookie;
@@ -80,7 +116,7 @@ function isSafeSessionId(value) {
 }
 
 function issueSessionCookie(res, sessionId) {
-  const secure = process.env.NODE_ENV === "production";
+  const secure = isProduction;
   const attrs = [
     `${SESSION_COOKIE_NAME}=${encodeURIComponent(sessionId)}`,
     "Path=/",
@@ -92,21 +128,84 @@ function issueSessionCookie(res, sessionId) {
   res.setHeader("Set-Cookie", attrs.join("; "));
 }
 
-// ── In-memory webhook event log ───────────────────────────────────────────────
-const webhookEvents = [];
-const MAX_EVENTS = 100;
+function getClientIp(req) {
+  return req.ip || req.socket?.remoteAddress || "unknown";
+}
 
-// SSE clients for live webhook streaming
-const sseClients = new Set();
+function isRateLimited(key, maxHits, windowMs) {
+  const now = Date.now();
+  const entry = rateLimits.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimits.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  entry.count += 1;
+  if (entry.count > maxHits) return true;
+  return false;
+}
+
+function requireRateLimit(bucket, maxHits = RATE_LIMIT_MAX.global, windowMs = RATE_LIMIT_WINDOW_MS) {
+  return (req, res, next) => {
+    const key = `${bucket}:${getClientIp(req)}:${req.sessionId || "anon"}`;
+    if (isRateLimited(key, maxHits, windowMs)) {
+      return res.status(429).json({
+        success: false,
+        error: { type: "RateLimitError", message: "Too many requests. Please try again shortly." },
+      });
+    }
+    next();
+  };
+}
+
+function getSessionWebhookList(sessionId) {
+  if (!sessionWebhookEvents.has(sessionId)) {
+    sessionWebhookEvents.set(sessionId, []);
+  }
+  return sessionWebhookEvents.get(sessionId);
+}
+
+function getSessionSseSet(sessionId) {
+  if (!sessionSseClients.has(sessionId)) {
+    sessionSseClients.set(sessionId, new Set());
+  }
+  return sessionSseClients.get(sessionId);
+}
+
+function validateBaseUrl(baseUrl) {
+  if (!baseUrl) return null;
+  let parsed;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    return "Base URL must be a valid absolute URL.";
+  }
+
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    return "Base URL must use http or https.";
+  }
+
+  if (isProduction) {
+    const allowedHosts = (process.env.ALLOWED_PAYD_BASE_HOSTS || "api.payd.money,sandbox-api.payd.money")
+      .split(",")
+      .map((host) => host.trim().toLowerCase())
+      .filter(Boolean);
+    if (!allowedHosts.includes(parsed.hostname.toLowerCase())) {
+      return "Base URL host is not allowed in production.";
+    }
+    if (parsed.protocol !== "https:") {
+      return "Base URL must use https in production.";
+    }
+  }
+
+  return null;
+}
 
 // ── Try env-based init ────────────────────────────────────────────────────────
 initFromEnv();
 
 app.use((req, res, next) => {
-  const headerSessionId = req.get("x-session-id");
   const cookieSessionId = parseCookies(req)[SESSION_COOKIE_NAME];
-
-  let sessionId = isSafeSessionId(headerSessionId) ? headerSessionId : cookieSessionId;
+  let sessionId = cookieSessionId;
   if (!isSafeSessionId(sessionId)) {
     sessionId = randomUUID().replace(/-/g, "");
     issueSessionCookie(res, sessionId);
@@ -130,6 +229,8 @@ function requireClient(req, res, next) {
   next();
 }
 
+app.use("/api", requireRateLimit("api", RATE_LIMIT_MAX.global));
+
 // ── Utility: wrap SDK calls ──────────────────────────────────────────────────
 async function sdkCall(res, fn) {
   const start = Date.now();
@@ -151,6 +252,7 @@ async function sdkCall(res, fn) {
 
 app.get("/api/config", (req, res) => {
   const config = getConfig(req.sessionId);
+  res.setHeader("Cache-Control", "no-store");
   res.json({
     success: true,
     data: config,
@@ -158,7 +260,7 @@ app.get("/api/config", (req, res) => {
   });
 });
 
-app.post("/api/config", (req, res) => {
+app.post("/api/config", requireRateLimit("config", RATE_LIMIT_MAX.config), (req, res) => {
   try {
     const { apiUsername, apiPassword, defaultUsername, defaultCallbackUrl, walletType, baseUrl } =
       req.body;
@@ -167,6 +269,14 @@ app.post("/api/config", (req, res) => {
       return res.status(400).json({
         success: false,
         error: { type: "ValidationError", message: "apiUsername and apiPassword are required" },
+      });
+    }
+
+    const baseUrlError = validateBaseUrl(baseUrl);
+    if (baseUrlError) {
+      return res.status(400).json({
+        success: false,
+        error: { type: "ValidationError", message: baseUrlError },
       });
     }
 
@@ -185,8 +295,14 @@ app.post("/api/config", (req, res) => {
   }
 });
 
-app.delete("/api/config", (req, res) => {
+app.delete("/api/config", requireRateLimit("config", RATE_LIMIT_MAX.config), (req, res) => {
   const removed = disconnect(req.sessionId);
+  sessionWebhookEvents.delete(req.sessionId);
+  const sseSet = sessionSseClients.get(req.sessionId);
+  if (sseSet) {
+    for (const client of sseSet) client.end();
+    sessionSseClients.delete(req.sessionId);
+  }
   const config = getConfig(req.sessionId);
   res.json({
     success: true,
@@ -358,7 +474,10 @@ app.get("/api/balances", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Live webhook receiver — Payd posts here
-app.post("/api/webhooks/receive", (req, res) => {
+app.post(
+  "/api/webhooks/receive",
+  requireRateLimit("webhook-receive", RATE_LIMIT_MAX.webhookReceive),
+  (req, res) => {
   const payd = getClient();
   let event;
 
@@ -373,11 +492,14 @@ app.post("/api/webhooks/receive", (req, res) => {
   }
 
   const entry = { receivedAt: new Date().toISOString(), event };
-  webhookEvents.unshift(entry);
-  if (webhookEvents.length > MAX_EVENTS) webhookEvents.pop();
+  const sessionId = isSafeSessionId(req.query.sid) ? req.query.sid : req.sessionId;
+  const sessionEvents = getSessionWebhookList(sessionId);
+  sessionEvents.unshift(entry);
+  if (sessionEvents.length > MAX_EVENTS) sessionEvents.pop();
 
   // Notify SSE clients
-  for (const client of sseClients) {
+  const sseSet = getSessionSseSet(sessionId);
+  for (const client of sseSet) {
     client.write(`data: ${JSON.stringify(entry)}\n\n`);
   }
 
@@ -387,12 +509,14 @@ app.post("/api/webhooks/receive", (req, res) => {
 
 // Get stored webhook events
 app.get("/api/webhooks/events", (req, res) => {
-  res.json({ success: true, data: webhookEvents });
+  const sessionEvents = getSessionWebhookList(req.sessionId);
+  res.json({ success: true, data: sessionEvents });
 });
 
 // Clear webhook events
 app.delete("/api/webhooks/events", (req, res) => {
-  webhookEvents.length = 0;
+  const sessionEvents = getSessionWebhookList(req.sessionId);
+  sessionEvents.length = 0;
   res.json({ success: true });
 });
 
@@ -404,8 +528,9 @@ app.get("/api/webhooks/stream", (req, res) => {
     Connection: "keep-alive",
   });
   res.write("data: connected\n\n");
-  sseClients.add(res);
-  req.on("close", () => sseClients.delete(res));
+  const sseSet = getSessionSseSet(req.sessionId);
+  sseSet.add(res);
+  req.on("close", () => sseSet.delete(res));
 });
 
 // Manual parse endpoint
@@ -442,7 +567,7 @@ app.post("/api/webhooks/verify", (req, res) => {
 // RUN ALL TESTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-app.post("/api/run-all", async (req, res) => {
+app.post("/api/run-all", requireRateLimit("run-all", RATE_LIMIT_MAX.runAll), async (req, res) => {
   if (!getClient(req.sessionId)) {
     return res.status(400).json({
       success: false,
@@ -461,7 +586,7 @@ app.post("/api/run-all", async (req, res) => {
 
     try {
       const fetchOpts = { headers: { "Content-Type": "application/json" } };
-      fetchOpts.headers["x-session-id"] = req.sessionId;
+      fetchOpts.headers.Cookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(req.sessionId)}`;
 
       if (test.method === "POST") {
         fetchOpts.method = "POST";
