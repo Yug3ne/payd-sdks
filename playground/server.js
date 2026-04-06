@@ -49,6 +49,16 @@ function getDefaultCallbackUrl(req) {
   return `http://localhost:${PORT}/api/webhooks/receive`;
 }
 
+function getRequestBaseUrl(req) {
+  const forwardedProto = req.get("x-forwarded-proto");
+  const forwardedHost = req.get("x-forwarded-host");
+  const host = forwardedHost || req.get("host");
+  const protocol = forwardedProto || req.protocol || "http";
+
+  if (host) return `${protocol}://${host}`;
+  return `http://localhost:${PORT}`;
+}
+
 const SESSION_COOKIE_NAME = "payd_playground_sid";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
 
@@ -442,7 +452,7 @@ app.post("/api/run-all", async (req, res) => {
 
   const results = [];
   const context = {};
-  const baseUrl = `http://localhost:${PORT}`;
+  const baseUrl = getRequestBaseUrl(req);
 
   for (const test of tests) {
     const start = Date.now();
