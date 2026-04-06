@@ -1,9 +1,11 @@
 import express from "express";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 import {
   initFromEnv,
   configure,
+  disconnect,
   getClient,
   getConfig,
   classifyError,
@@ -16,8 +18,69 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3456;
 
 const app = express();
+app.set("trust proxy", true);
 app.use(express.json());
 app.use(express.static(join(__dirname, "public")));
+
+function getDefaultCallbackUrl(req) {
+  if (process.env.PAYD_CALLBACK_URL) return process.env.PAYD_CALLBACK_URL;
+
+  const externalBaseUrl =
+    process.env.PUBLIC_BASE_URL ||
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    process.env.RAILWAY_PUBLIC_DOMAIN;
+
+  if (externalBaseUrl) {
+    const normalizedBaseUrl = externalBaseUrl.startsWith("http")
+      ? externalBaseUrl
+      : `https://${externalBaseUrl}`;
+    return `${normalizedBaseUrl.replace(/\/$/, "")}/api/webhooks/receive`;
+  }
+
+  if (req) {
+    const forwardedProto = req.get("x-forwarded-proto");
+    const forwardedHost = req.get("x-forwarded-host");
+    const host = forwardedHost || req.get("host");
+    const protocol = forwardedProto || req.protocol || "http";
+    if (host) return `${protocol}://${host}/api/webhooks/receive`;
+  }
+
+  return `http://localhost:${PORT}/api/webhooks/receive`;
+}
+
+const SESSION_COOKIE_NAME = "payd_playground_sid";
+const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
+
+function parseCookies(req) {
+  const raw = req.headers.cookie;
+  if (!raw) return {};
+  return raw.split(";").reduce((acc, pair) => {
+    const idx = pair.indexOf("=");
+    if (idx === -1) return acc;
+    const key = pair.slice(0, idx).trim();
+    const value = decodeURIComponent(pair.slice(idx + 1).trim());
+    acc[key] = value;
+    return acc;
+  }, {});
+}
+
+function isSafeSessionId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{20,128}$/.test(value);
+}
+
+function issueSessionCookie(res, sessionId) {
+  const secure = process.env.NODE_ENV === "production";
+  const attrs = [
+    `${SESSION_COOKIE_NAME}=${encodeURIComponent(sessionId)}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
+  ];
+  if (secure) attrs.push("Secure");
+  res.setHeader("Set-Cookie", attrs.join("; "));
+}
 
 // ── In-memory webhook event log ───────────────────────────────────────────────
 const webhookEvents = [];
@@ -29,9 +92,23 @@ const sseClients = new Set();
 // ── Try env-based init ────────────────────────────────────────────────────────
 initFromEnv();
 
+app.use((req, res, next) => {
+  const headerSessionId = req.get("x-session-id");
+  const cookieSessionId = parseCookies(req)[SESSION_COOKIE_NAME];
+
+  let sessionId = isSafeSessionId(headerSessionId) ? headerSessionId : cookieSessionId;
+  if (!isSafeSessionId(sessionId)) {
+    sessionId = randomUUID().replace(/-/g, "");
+    issueSessionCookie(res, sessionId);
+  }
+
+  req.sessionId = sessionId;
+  next();
+});
+
 // ── Middleware: require SDK client ────────────────────────────────────────────
 function requireClient(req, res, next) {
-  if (!getClient()) {
+  if (!getClient(req.sessionId)) {
     return res.status(400).json({
       success: false,
       error: {
@@ -63,11 +140,11 @@ async function sdkCall(res, fn) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get("/api/config", (req, res) => {
-  const config = getConfig();
+  const config = getConfig(req.sessionId);
   res.json({
     success: true,
     data: config,
-    callbackUrl: `http://localhost:${PORT}/api/webhooks/receive`,
+    callbackUrl: getDefaultCallbackUrl(req),
   });
 });
 
@@ -83,19 +160,30 @@ app.post("/api/config", (req, res) => {
       });
     }
 
-    configure({
+    configure(req.sessionId, {
       apiUsername,
       apiPassword,
       defaultUsername: defaultUsername || "",
-      defaultCallbackUrl: defaultCallbackUrl || `http://localhost:${PORT}/api/webhooks/receive`,
+      defaultCallbackUrl: defaultCallbackUrl || getDefaultCallbackUrl(req),
       walletType: walletType || "local",
       baseUrl: baseUrl || undefined,
     });
 
-    res.json({ success: true, data: getConfig() });
+    res.json({ success: true, data: getConfig(req.sessionId) });
   } catch (error) {
     res.status(400).json({ success: false, error: classifyError(error) });
   }
+});
+
+app.delete("/api/config", (req, res) => {
+  const removed = disconnect(req.sessionId);
+  const config = getConfig(req.sessionId);
+  res.json({
+    success: true,
+    data: config,
+    disconnected: removed,
+    callbackUrl: getDefaultCallbackUrl(req),
+  });
 });
 
 app.get("/api/fixtures", (req, res) => {
@@ -107,7 +195,7 @@ app.get("/api/fixtures", (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post("/api/collections/mpesa", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.collections.mpesa({
       username: req.body.username || "",
@@ -120,7 +208,7 @@ app.post("/api/collections/mpesa", requireClient, (req, res) => {
 });
 
 app.post("/api/collections/card", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.collections.card({
       username: req.body.username || "",
@@ -133,7 +221,7 @@ app.post("/api/collections/card", requireClient, (req, res) => {
 });
 
 app.post("/api/collections/pan-african", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.collections.panAfrican({
       username: req.body.username || "",
@@ -157,7 +245,7 @@ app.post("/api/collections/pan-african", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post("/api/payouts/mpesa", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.payouts.mpesa({
       phoneNumber: req.body.phoneNumber,
@@ -170,7 +258,7 @@ app.post("/api/payouts/mpesa", requireClient, (req, res) => {
 });
 
 app.post("/api/payouts/pan-african", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.payouts.panAfrican({
       username: req.body.username || "",
@@ -193,7 +281,7 @@ app.post("/api/payouts/pan-african", requireClient, (req, res) => {
 });
 
 app.post("/api/payouts/merchant", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.payouts.merchant({
       username: req.body.username || "",
@@ -213,7 +301,7 @@ app.post("/api/payouts/merchant", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post("/api/transfers/send", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.transfers.send({
       receiverUsername: req.body.receiverUsername,
@@ -231,7 +319,7 @@ app.post("/api/transfers/send", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get("/api/networks/discover", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () =>
     payd.networks.discover(req.query.transactionType, req.query.dialCode),
   );
@@ -242,7 +330,7 @@ app.get("/api/networks/discover", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get("/api/transactions/status/:ref", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () => payd.transactions.getStatus(req.params.ref));
 });
 
@@ -251,7 +339,7 @@ app.get("/api/transactions/status/:ref", requireClient, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get("/api/balances", requireClient, (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   sdkCall(res, () => payd.balances.getAll(req.query.username || undefined));
 });
 
@@ -312,7 +400,7 @@ app.get("/api/webhooks/stream", (req, res) => {
 
 // Manual parse endpoint
 app.post("/api/webhooks/parse", (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   const webhooksUtil = payd ? payd.webhooks : new Webhooks();
   const start = Date.now();
   try {
@@ -325,7 +413,7 @@ app.post("/api/webhooks/parse", (req, res) => {
 
 // Manual verify endpoint
 app.post("/api/webhooks/verify", (req, res) => {
-  const payd = getClient();
+  const payd = getClient(req.sessionId);
   const webhooksUtil = payd ? payd.webhooks : new Webhooks();
   const start = Date.now();
   try {
@@ -345,7 +433,7 @@ app.post("/api/webhooks/verify", (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post("/api/run-all", async (req, res) => {
-  if (!getClient()) {
+  if (!getClient(req.sessionId)) {
     return res.status(400).json({
       success: false,
       error: { type: "NotConfigured", message: "Configure credentials first." },
@@ -363,6 +451,7 @@ app.post("/api/run-all", async (req, res) => {
 
     try {
       const fetchOpts = { headers: { "Content-Type": "application/json" } };
+      fetchOpts.headers["x-session-id"] = req.sessionId;
 
       if (test.method === "POST") {
         fetchOpts.method = "POST";
@@ -417,6 +506,6 @@ app.listen(PORT, () => {
   console.log(`  ─────────────────────────────────────`);
   console.log(`  Dashboard:    http://localhost:${PORT}`);
   console.log(`  Webhook URL:  http://localhost:${PORT}/api/webhooks/receive`);
-  console.log(`  SDK Status:   ${getClient() ? "Connected (from env)" : "Not configured"}`);
+  console.log(`  SDK Status:   Session-based credentials required`);
   console.log(`  ─────────────────────────────────────\n`);
 });

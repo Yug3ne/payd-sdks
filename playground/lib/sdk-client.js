@@ -7,57 +7,58 @@ import {
   PaydWebhookVerificationError,
 } from "payd-node-sdk";
 
-let client = null;
-let currentConfig = null;
+const sessionClients = new Map();
+const sessionConfigs = new Map();
 
 /** Try to initialize from environment variables on startup */
 export function initFromEnv() {
-  const apiUsername = process.env.PAYD_API_USERNAME;
-  const apiPassword = process.env.PAYD_API_PASSWORD;
-
-  if (apiUsername && apiPassword) {
-    const port = process.env.PORT || 3456;
-    const callbackUrl =
-      process.env.PAYD_CALLBACK_URL || `http://localhost:${port}/api/webhooks/receive`;
-
-    currentConfig = {
-      apiUsername,
-      apiPassword,
-      defaultUsername: process.env.PAYD_USERNAME || "",
-      defaultCallbackUrl: callbackUrl,
-      walletType: "local",
-      debug: true,
-    };
-
-    client = new PaydClient(currentConfig);
-    console.log(`[SDK] Initialized from env vars (user: ${apiUsername})`);
-    return true;
-  }
+  // Environment fallback intentionally disabled: all credentials are session-scoped.
   return false;
 }
 
 /** Configure with new credentials at runtime */
-export function configure(options) {
-  currentConfig = { ...options, debug: true };
-  client = new PaydClient(currentConfig);
-  console.log(`[SDK] Configured with user: ${options.apiUsername}`);
+export function configure(sessionId, options) {
+  const config = { ...options, debug: true };
+  const client = new PaydClient(config);
+
+  if (sessionId) {
+    sessionConfigs.set(sessionId, config);
+    sessionClients.set(sessionId, client);
+    console.log(`[SDK] Session configured with user: ${options.apiUsername}`);
+    return;
+  }
+}
+
+/** Remove runtime configuration for a specific browser session */
+export function disconnect(sessionId) {
+  if (!sessionId) return false;
+  const hadConfig = sessionConfigs.delete(sessionId);
+  sessionClients.delete(sessionId);
+  return hadConfig;
 }
 
 /** Get the current PaydClient instance */
-export function getClient() {
-  return client;
+export function getClient(sessionId) {
+  if (sessionId && sessionClients.has(sessionId)) {
+    return sessionClients.get(sessionId);
+  }
+  return null;
 }
 
 /** Get the current config (password omitted) */
-export function getConfig() {
-  if (!currentConfig) return null;
+export function getConfig(sessionId) {
+  const config = sessionId && sessionConfigs.has(sessionId)
+    ? sessionConfigs.get(sessionId)
+    : null;
+
+  if (!config) return null;
   return {
-    apiUsername: currentConfig.apiUsername,
-    defaultUsername: currentConfig.defaultUsername || "",
-    defaultCallbackUrl: currentConfig.defaultCallbackUrl || "",
-    walletType: currentConfig.walletType || "local",
-    baseUrl: currentConfig.baseUrl || "https://api.payd.money",
-    isConnected: !!client,
+    apiUsername: config.apiUsername,
+    defaultUsername: config.defaultUsername || "",
+    defaultCallbackUrl: config.defaultCallbackUrl || "",
+    walletType: config.walletType || "local",
+    baseUrl: config.baseUrl || "https://api.payd.money",
+    isConnected: true,
   };
 }
 

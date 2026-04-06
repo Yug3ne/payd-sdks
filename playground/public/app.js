@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const resp = await api("GET", "/api/config");
   if (resp.success && resp.data?.isConnected) {
     setConnected(resp.data);
+  } else {
+    setDisconnected();
   }
   callbackUrl = resp.callbackUrl || `${location.origin}/api/webhooks/receive`;
   document.getElementById("cfgCallbackUrl").value = callbackUrl;
@@ -119,6 +121,36 @@ function setConnected(config) {
   document.getElementById("statusText").textContent = `Connected — ${config.apiUsername}`;
   document.getElementById("configBadge").className = "badge badge-pass";
   document.getElementById("configBadge").textContent = "connected";
+}
+
+function setDisconnected() {
+  document.getElementById("statusDot").classList.remove("connected");
+  document.getElementById("statusText").textContent = "Not connected";
+  document.getElementById("configBadge").className = "badge badge-idle";
+  document.getElementById("configBadge").textContent = "configure";
+}
+
+async function disconnectConfig() {
+  const resp = await api("DELETE", "/api/config");
+  if (!resp.success) {
+    alert(resp.error?.message || "Failed to disconnect");
+    return;
+  }
+
+  const hasFallbackConnection = !!resp.data?.isConnected;
+  if (hasFallbackConnection) {
+    setConnected(resp.data);
+  } else {
+    setDisconnected();
+  }
+
+  document.getElementById("cfgApiPassword").value = "";
+  if (!hasFallbackConnection) {
+    document.getElementById("cfgApiUsername").value = "";
+    document.getElementById("cfgUsername").value = "";
+    document.getElementById("cfgBaseUrl").value = "";
+    document.getElementById("cfgWalletType").value = "local";
+  }
 }
 
 // ── SDK Operation Executors ───────────────────────────────────────────────────
