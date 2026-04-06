@@ -71,18 +71,28 @@ function showResult(containerId, data) {
   // If we got a transactionReference, make it clickable
   const ref = data.data?.transactionReference;
   if (ref) {
+    const safeRef = escapeHtml(String(ref));
     const refLink = document.createElement("div");
     refLink.style.cssText = "margin-top:8px;font-size:12px;";
-    refLink.innerHTML = `Transaction Ref: <code style="color:var(--accent);cursor:pointer" onclick="window.lookupRef('${ref}')">${ref}</code> (click to look up)`;
+    refLink.innerHTML = `Transaction Ref: <code style="color:var(--accent);cursor:pointer">${safeRef}</code> (click to look up)`;
+    refLink.querySelector("code").addEventListener("click", () => lookupRef(ref));
     el.appendChild(refLink);
   }
 
   // If we got a checkoutUrl, show it as a link
   const checkout = data.data?.checkoutUrl;
   if (checkout) {
+    const safeUrl = escapeHtml(String(checkout));
     const link = document.createElement("div");
     link.style.cssText = "margin-top:8px;font-size:12px;";
-    link.innerHTML = `Checkout: <a href="${checkout}" target="_blank" style="color:var(--blue)">${checkout}</a>`;
+    const anchor = document.createElement("a");
+    anchor.href = checkout;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    anchor.style.color = "var(--blue)";
+    anchor.textContent = checkout;
+    link.textContent = "Checkout: ";
+    link.appendChild(anchor);
     el.appendChild(link);
   }
 }
@@ -363,14 +373,17 @@ function addWebhookEvent(entry) {
 
   const div = document.createElement("div");
   div.className = "webhook-event";
+  const safeRef = escapeHtml(String(event.transactionReference || "—"));
+  const safeType = escapeHtml(String(event.transactionType || ""));
+  const safeAmount = event.amount != null ? "• " + escapeHtml(String(event.amount)) : "";
   div.innerHTML = `
     <div class="we-header">
-      <span class="we-ref">${event.transactionReference || "—"}</span>
+      <span class="we-ref">${safeRef}</span>
       <span class="badge ${badgeClass}" style="font-size:10px">${badgeText}</span>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim)">
-      <span>${event.transactionType || ""} ${event.amount != null ? "• " + event.amount : ""}</span>
-      <span class="we-time">${time}</span>
+      <span>${safeType} ${safeAmount}</span>
+      <span class="we-time">${escapeHtml(time)}</span>
     </div>
     <pre>${escapeHtml(JSON.stringify(event._raw || event, null, 2))}</pre>
   `;

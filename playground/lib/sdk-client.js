@@ -18,7 +18,7 @@ export function initFromEnv() {
 
 /** Configure with new credentials at runtime */
 export function configure(sessionId, options) {
-  const config = { ...options, debug: true };
+  const config = { ...options, debug: process.env.NODE_ENV !== "production" };
   const client = new PaydClient(config);
 
   if (sessionId) {

@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3456;
 const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
-app.set("trust proxy", true);
+app.set("trust proxy", isProduction ? 1 : false);
 app.use(express.json({ limit: "256kb" }));
 app.use(express.static(join(__dirname, "public")));
 
@@ -30,6 +30,10 @@ app.use((req, res, next) => {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+  );
   if (isProduction) {
     res.setHeader(
       "Strict-Transport-Security",
@@ -43,8 +47,9 @@ function getDefaultCallbackUrl(req) {
   const sessionId = req && isSafeSessionId(req.sessionId) ? req.sessionId : null;
   const withSession = (baseUrl) => {
     if (!sessionId) return baseUrl;
+    const token = getWebhookToken(sessionId);
     const separator = baseUrl.includes("?") ? "&" : "?";
-    return `${baseUrl}${separator}sid=${encodeURIComponent(sessionId)}`;
+    return `${baseUrl}${separator}tok=${encodeURIComponent(token)}`;
   };
 
   if (process.env.PAYD_CALLBACK_URL) return withSession(process.env.PAYD_CALLBACK_URL);
@@ -97,6 +102,35 @@ const rateLimits = new Map();
 
 const sessionWebhookEvents = new Map();
 const sessionSseClients = new Map();
+const activeSessions = new Map();
+
+function touchSession(sessionId) {
+  activeSessions.set(sessionId, Date.now());
+}
+
+const webhookTokenToSession = new Map();
+const sessionToWebhookToken = new Map();
+
+function getWebhookToken(sessionId) {
+  if (sessionToWebhookToken.has(sessionId)) return sessionToWebhookToken.get(sessionId);
+  const token = randomUUID().replace(/-/g, "");
+  webhookTokenToSession.set(token, sessionId);
+  sessionToWebhookToken.set(sessionId, token);
+  return token;
+}
+
+function verifyWebhookToken(token) {
+  if (typeof token !== "string" || !/^[a-f0-9]{32}$/.test(token)) return null;
+  const sid = webhookTokenToSession.get(token);
+  if (!sid || !activeSessions.has(sid)) return null;
+  return sid;
+}
+
+function clearWebhookToken(sessionId) {
+  const token = sessionToWebhookToken.get(sessionId);
+  if (token) webhookTokenToSession.delete(token);
+  sessionToWebhookToken.delete(sessionId);
+}
 
 function parseCookies(req) {
   const raw = req.headers.cookie;
@@ -212,6 +246,7 @@ app.use((req, res, next) => {
   }
 
   req.sessionId = sessionId;
+  touchSession(sessionId);
   next();
 });
 
@@ -298,6 +333,7 @@ app.post("/api/config", requireRateLimit("config", RATE_LIMIT_MAX.config), (req,
 app.delete("/api/config", requireRateLimit("config", RATE_LIMIT_MAX.config), (req, res) => {
   const removed = disconnect(req.sessionId);
   sessionWebhookEvents.delete(req.sessionId);
+  clearWebhookToken(req.sessionId);
   const sseSet = sessionSseClients.get(req.sessionId);
   if (sseSet) {
     for (const client of sseSet) client.end();
@@ -478,7 +514,10 @@ app.post(
   "/api/webhooks/receive",
   requireRateLimit("webhook-receive", RATE_LIMIT_MAX.webhookReceive),
   (req, res) => {
-  const payd = getClient();
+  const tokenSessionId = req.query.tok ? verifyWebhookToken(req.query.tok) : null;
+  const sessionId = tokenSessionId || req.sessionId;
+
+  const payd = getClient(sessionId);
   let event;
 
   try {
@@ -492,7 +531,6 @@ app.post(
   }
 
   const entry = { receivedAt: new Date().toISOString(), event };
-  const sessionId = isSafeSessionId(req.query.sid) ? req.query.sid : req.sessionId;
   const sessionEvents = getSessionWebhookList(sessionId);
   sessionEvents.unshift(entry);
   if (sessionEvents.length > MAX_EVENTS) sessionEvents.pop();
@@ -631,6 +669,31 @@ app.post("/api/run-all", requireRateLimit("run-all", RATE_LIMIT_MAX.runAll), asy
     results,
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SESSION CLEANUP
+// ═══════════════════════════════════════════════════════════════════════════════
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [sid, lastSeen] of activeSessions) {
+    if (now - lastSeen > SESSION_TTL_MS) {
+      disconnect(sid);
+      activeSessions.delete(sid);
+      sessionWebhookEvents.delete(sid);
+      clearWebhookToken(sid);
+      const sseSet = sessionSseClients.get(sid);
+      if (sseSet) {
+        for (const client of sseSet) client.end();
+        sessionSseClients.delete(sid);
+      }
+    }
+  }
+
+  for (const [key, entry] of rateLimits) {
+    if (now > entry.resetAt) rateLimits.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // START
