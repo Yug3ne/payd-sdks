@@ -33,3 +33,6 @@ npm-debug.log*
 *.tgz
 tmp/
 .cache/
+
+# Guides
+PYTHON-SDK-GUIDE.md
