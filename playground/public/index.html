@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payd SDK Test App</title>
+  <title>Payd SDK Playground</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -12,14 +12,14 @@
 <div class="header">
   <div style="display:flex;align-items:center">
     <h1>Payd SDK Playground</h1>
-    <span class="tag">Payd node Sdk</span>
+    <span class="tag">payd-node-sdk</span>
   </div>
   <div class="header-actions">
     <div class="config-status">
       <div class="status-dot" id="statusDot"></div>
       <span id="statusText">Not connected</span>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="runAll()">Run All Tests</button>
+    <button class="btn btn-primary btn-sm" onclick="window.runAll()">Run All Tests</button>
   </div>
 </div>
 
@@ -38,14 +38,63 @@
       </div>
     </div>
 
+    <!-- ── Quick Guide ───────────────────────────────────────────────── -->
+    <div class="section-title">Getting Started</div>
+    <div class="card">
+      <div class="card-body">
+        <p class="helper-text">
+          Interactive documentation for the <strong>payd-node-sdk</strong>. Each card below maps to an SDK method &mdash; expand it to see the code example, required fields, and try it live.
+        </p>
+        <div class="doc-block">
+          <summary style="cursor:default">Installation &amp; Setup</summary>
+<pre>npm install payd-node-sdk
+
+import { PaydClient } from "payd-node-sdk";
+
+const payd = new PaydClient({
+  apiUsername: "your_api_username",
+  apiPassword: "your_api_password",
+  defaultCallbackUrl: "https://your-server.com/webhook",
+  defaultUsername: "your_payd_username",  // optional
+  walletType: "local",                   // "local" or "USD"
+});</pre>
+        </div>
+        <div>
+          <span class="endpoint-chip">payd.balances.getAll()</span>
+          <span class="endpoint-chip">payd.networks.discover()</span>
+          <span class="endpoint-chip">payd.collections.mpesa()</span>
+          <span class="endpoint-chip">payd.collections.card()</span>
+          <span class="endpoint-chip">payd.collections.panAfrican()</span>
+          <span class="endpoint-chip">payd.payouts.mpesa()</span>
+          <span class="endpoint-chip">payd.payouts.merchant()</span>
+          <span class="endpoint-chip">payd.payouts.panAfrican()</span>
+          <span class="endpoint-chip">payd.transfers.send()</span>
+          <span class="endpoint-chip">payd.transactions.getStatus()</span>
+          <span class="endpoint-chip">payd.webhooks.parseEvent()</span>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Configuration ────────────────────────────────────────────── -->
     <div class="section-title">Configuration</div>
     <div class="card" id="configCard">
-      <div class="card-header" onclick="toggleCard('configBody')">
+      <div class="card-header" onclick="window.toggleCard('configBody')">
         <h3>API Credentials</h3>
         <span class="badge badge-idle" id="configBadge">configure</span>
       </div>
       <div class="card-body" id="configBody">
+        <p class="helper-text">Enter your Payd API credentials to initialize the SDK for this browser session. These map to <code>PaydClient</code> constructor options.</p>
+        <details class="doc-block">
+          <summary>SDK Code</summary>
+<pre>const payd = new PaydClient({
+  apiUsername: "your_api_username",
+  apiPassword: "your_api_password",
+  defaultUsername: "your_payd_username",
+  defaultCallbackUrl: "https://your-server.com/webhook",
+  walletType: "local",   // "local" (KES) or "USD"
+  baseUrl: "https://api.payd.money",  // optional
+});</pre>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>API Username</label>
@@ -76,8 +125,8 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="saveConfig()">Connect</button>
-          <button class="btn btn-danger" onclick="disconnectConfig()">Disconnect</button>
+          <button class="btn btn-primary" onclick="window.saveConfig()">Connect</button>
+          <button class="btn btn-danger" onclick="window.disconnectConfig()">Disconnect</button>
         </div>
       </div>
     </div>
@@ -85,19 +134,32 @@
     <!-- ── Balances ──────────────────────────────────────────────────── -->
     <div class="section-title">Resources</div>
     <div class="card">
-      <div class="card-header" onclick="toggleCard('balancesBody')">
+      <div class="card-header" onclick="window.toggleCard('balancesBody')">
         <div><span class="card-category">Balances</span><h3 style="display:inline">Get All</h3></div>
         <span class="badge badge-idle" id="balances-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="balancesBody">
+        <p class="helper-text">Retrieves fiat and onchain wallet balances for a Payd username.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const balances = await payd.balances.getAll("my_payd_user");
+
+console.log(balances.fiatBalance);    // { balance: 1000.00, currency: "KES" }
+console.log(balances.onchainBalance); // { balance: 500, currency: "USD" }</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; falls back to defaultUsername</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ fiatBalance, onchainBalance }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
-            <label>Username (optional — uses default)</label>
+            <label>Username (optional &mdash; uses default)</label>
             <input type="text" id="bal-username" placeholder="Uses default">
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execBalances()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execBalances()">Execute</button>
         </div>
         <div id="balances-result"></div>
       </div>
@@ -105,11 +167,32 @@
 
     <!-- ── Networks ──────────────────────────────────────────────────── -->
     <div class="card">
-      <div class="card-header" onclick="toggleCard('networksBody')">
+      <div class="card-header" onclick="window.toggleCard('networksBody')">
         <div><span class="card-category">Networks</span><h3 style="display:inline">Discover</h3></div>
         <span class="badge badge-idle" id="networks-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="networksBody">
+        <p class="helper-text">Discovers available mobile money and bank networks for a country. Use results to fill Pan-African collection/payout forms.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const networks = await payd.networks.discover("receipt", "+234");
+
+console.log(networks.mobile); // Mobile money networks
+console.log(networks.banks);  // Bank networks
+
+const mtn = networks.findMobile("MTN");
+console.log(mtn.minAmount, mtn.maxAmount);
+
+// Get params for a payment request
+const params = mtn.toPaymentParams();
+// { networkCode, channelId, transactionChannel, providerName, providerCode }</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>transactionType</code></td><td>"receipt" | "withdrawal"</td><td>Yes</td></tr>
+            <tr><td><code>dialCode</code></td><td>string (e.g. "+234")</td><td>Yes</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ mobile: Network[], banks: Network[] }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Transaction Type</label>
@@ -124,7 +207,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execNetworks()">Discover</button>
+          <button class="btn btn-primary" onclick="window.execNetworks()">Discover</button>
         </div>
         <div id="networks-result"></div>
       </div>
@@ -132,11 +215,24 @@
 
     <!-- ── Transaction Status ────────────────────────────────────────── -->
     <div class="card">
-      <div class="card-header" onclick="toggleCard('txStatusBody')">
+      <div class="card-header" onclick="window.toggleCard('txStatusBody')">
         <div><span class="card-category">Transactions</span><h3 style="display:inline">Get Status</h3></div>
         <span class="badge badge-idle" id="txstatus-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="txStatusBody">
+        <p class="helper-text">Looks up the current state of any transaction by its reference.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const tx = await payd.transactions.getStatus("9BD103350408eR");
+
+console.log(tx.type);                     // "receipt"
+console.log(tx.transactionDetails.status); // "success"</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>transactionReference</code></td><td>string</td><td>Yes</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference, type, transactionDetails }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group full">
             <label>Transaction Reference</label>
@@ -144,7 +240,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execTxStatus()">Look Up</button>
+          <button class="btn btn-primary" onclick="window.execTxStatus()">Look Up</button>
         </div>
         <div id="txstatus-result"></div>
       </div>
@@ -154,14 +250,36 @@
     <div class="section-title">Collections (Payins)</div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('mpesaCollBody')">
+      <div class="card-header" onclick="window.toggleCard('mpesaCollBody')">
         <div><span class="card-category">Collections</span><h3 style="display:inline">M-Pesa STK Push</h3></div>
         <span class="badge badge-idle" id="coll-mpesa-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="mpesaCollBody">
+        <p class="helper-text">Triggers an M-Pesa STK push prompt on the customer's phone to collect a payment in KES.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const result = await payd.collections.mpesa({
+  username: "my_payd_user",
+  amount: 500,
+  phoneNumber: "0700000000",
+  narration: "Order #1234",
+  callbackUrl: "https://example.com/webhook",
+});
+
+console.log(result.transactionReference); // "9BD103350408eR"</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>amount</code></td><td>number (10&ndash;250,000)</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string (07xxx)</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference, success }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
-            <label>Amount (KES, 10–250,000)</label>
+            <label>Amount (KES, 10&ndash;250,000)</label>
             <input type="number" id="cm-amount" value="10">
           </div>
           <div class="form-group">
@@ -174,18 +292,41 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execCollMpesa()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execCollMpesa()">Execute</button>
         </div>
         <div id="coll-mpesa-result"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('cardCollBody')">
+      <div class="card-header" onclick="window.toggleCard('cardCollBody')">
         <div><span class="card-category">Collections</span><h3 style="display:inline">Card Payment</h3></div>
         <span class="badge badge-idle" id="coll-card-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="cardCollBody">
+        <p class="helper-text">Creates a hosted card checkout session. Redirect the customer to the returned <code>checkoutUrl</code> to complete payment.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const result = await payd.collections.card({
+  username: "my_payd_user",
+  amount: 500,
+  phoneNumber: "0700000000",
+  narration: "Order #1234",
+  callbackUrl: "https://example.com/webhook",
+});
+
+// Redirect customer to hosted checkout
+window.location.href = result.checkoutUrl;</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>amount</code></td><td>number (min 100)</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ checkoutUrl }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Amount (KES, min 100)</label>
@@ -201,18 +342,54 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execCollCard()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execCollCard()">Execute</button>
         </div>
         <div id="coll-card-result"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('panCollBody')">
+      <div class="card-header" onclick="window.toggleCard('panCollBody')">
         <div><span class="card-category">Collections</span><h3 style="display:inline">Pan-African</h3></div>
         <span class="badge badge-idle" id="coll-pan-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="panCollBody">
+        <p class="helper-text">Collects payments across African countries via mobile money or bank. Run <strong>Networks Discover</strong> first to get valid <code>networkCode</code> and <code>channelId</code>.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>// Step 1: Discover available networks
+const networks = await payd.networks.discover("receipt", "+234");
+const opay = networks.findMobile("OPay");
+
+// Step 2: Collect payment
+const result = await payd.collections.panAfrican({
+  username: "my_payd_user",
+  ...opay.toPaymentParams(),
+  accountName: "phone",
+  amount: 1800,
+  phoneNumber: "+2340000000000",
+  accountNumber: "+2340000000000",
+  narration: "Order #1234",
+  currency: "NGN",
+  callbackUrl: "https://example.com/webhook",
+});</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>accountName</code></td><td>"phone" | "bank"</td><td>Yes</td></tr>
+            <tr><td><code>amount</code></td><td>number</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string (+country code)</td><td>Yes</td></tr>
+            <tr><td><code>accountNumber</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>networkCode</code></td><td>string (UUID from discover)</td><td>Yes</td></tr>
+            <tr><td><code>channelId</code></td><td>string (UUID from discover)</td><td>Yes</td></tr>
+            <tr><td><code>transactionChannel</code></td><td>"phone" | "bank"</td><td>Yes</td></tr>
+            <tr><td><code>currency</code></td><td>string (e.g. "NGN")</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>redirectUrl</code></td><td>string</td><td class="optional">Optional &mdash; for South Africa</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference, success }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Account Name</label>
@@ -256,7 +433,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execCollPan()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execCollPan()">Execute</button>
         </div>
         <div id="coll-pan-result"></div>
       </div>
@@ -266,18 +443,37 @@
     <div class="section-title">Payouts</div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('mpesaPayBody')">
+      <div class="card-header" onclick="window.toggleCard('mpesaPayBody')">
         <div><span class="card-category">Payouts</span><h3 style="display:inline">M-Pesa</h3></div>
         <span class="badge badge-idle" id="pay-mpesa-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="mpesaPayBody">
+        <p class="helper-text">Sends funds from your Payd wallet to an M-Pesa phone number in KES.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const result = await payd.payouts.mpesa({
+  phoneNumber: "0700000000",
+  amount: 500,
+  narration: "Salary payment",
+  callbackUrl: "https://example.com/webhook",
+});</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>phoneNumber</code></td><td>string (07xxx)</td><td>Yes</td></tr>
+            <tr><td><code>amount</code></td><td>number (10&ndash;250,000)</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>walletType</code></td><td>"local" | "USD"</td><td class="optional">Optional</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Phone Number</label>
             <input type="text" id="pm-phone" value="0700000000">
           </div>
           <div class="form-group">
-            <label>Amount (KES, 10–250,000)</label>
+            <label>Amount (KES, 10&ndash;250,000)</label>
             <input type="number" id="pm-amount" value="10">
           </div>
           <div class="form-group full">
@@ -286,18 +482,43 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execPayMpesa()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execPayMpesa()">Execute</button>
         </div>
         <div id="pay-mpesa-result"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('merchantBody')">
+      <div class="card-header" onclick="window.toggleCard('merchantBody')">
         <div><span class="card-category">Payouts</span><h3 style="display:inline">Merchant (Paybill/Till)</h3></div>
         <span class="badge badge-idle" id="pay-merchant-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="merchantBody">
+        <p class="helper-text">Pays out to a merchant Paybill or Till number. Verify business account details before executing.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const result = await payd.payouts.merchant({
+  username: "my_payd_user",
+  amount: 500,
+  phoneNumber: "+254700000000",
+  narration: "Utility bill",
+  businessAccount: "123456",
+  businessNumber: "9876543210",
+  callbackUrl: "https://example.com/webhook",
+});</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>amount</code></td><td>number</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string (+254xxx)</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>businessAccount</code></td><td>string (Paybill/Till)</td><td>Yes</td></tr>
+            <tr><td><code>businessNumber</code></td><td>string (Account #)</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>walletType</code></td><td>"local" | "USD"</td><td class="optional">Optional</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Amount (KES)</label>
@@ -321,18 +542,56 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execPayMerchant()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execPayMerchant()">Execute</button>
         </div>
         <div id="pay-merchant-result"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('panPayBody')">
+      <div class="card-header" onclick="window.toggleCard('panPayBody')">
         <div><span class="card-category">Payouts</span><h3 style="display:inline">Pan-African</h3></div>
         <span class="badge badge-idle" id="pay-pan-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="panPayBody">
+        <p class="helper-text">Sends funds to mobile wallets or bank accounts across Africa. Run <strong>Networks Discover</strong> (withdrawal) first to get routing values.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const networks = await payd.networks.discover("withdrawal", "+234");
+const opay = networks.findBank("OPay");
+
+const result = await payd.payouts.panAfrican({
+  username: "my_payd_user",
+  ...opay.toPaymentParams(),
+  accountName: "bank",
+  accountHolderName: "John Doe",
+  accountNumber: "0000000000",
+  amount: 1800,
+  phoneNumber: "+2340000000000",
+  narration: "Payment for services",
+  currency: "NGN",
+  callbackUrl: "https://example.com/webhook",
+});</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>username</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>accountName</code></td><td>"bank" | "phone"</td><td>Yes</td></tr>
+            <tr><td><code>accountHolderName</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>accountNumber</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>amount</code></td><td>number</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string (+country code)</td><td>Yes</td></tr>
+            <tr><td><code>currency</code></td><td>string (e.g. "NGN")</td><td>Yes</td></tr>
+            <tr><td><code>networkCode</code></td><td>string (UUID)</td><td>Yes</td></tr>
+            <tr><td><code>channelId</code></td><td>string (UUID)</td><td>Yes</td></tr>
+            <tr><td><code>transactionChannel</code></td><td>"bank" | "phone"</td><td>Yes</td></tr>
+            <tr><td><code>providerName</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>providerCode</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>callbackUrl</code></td><td>string</td><td class="optional">Optional &mdash; uses default</td></tr>
+            <tr><td><code>walletType</code></td><td>"local" | "USD"</td><td class="optional">Optional</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Account Name</label>
@@ -384,7 +643,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execPayPan()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execPayPan()">Execute</button>
         </div>
         <div id="pay-pan-result"></div>
       </div>
@@ -393,11 +652,31 @@
     <!-- ── Transfers ─────────────────────────────────────────────────── -->
     <div class="section-title">Transfers</div>
     <div class="card">
-      <div class="card-header" onclick="toggleCard('transferBody')">
+      <div class="card-header" onclick="window.toggleCard('transferBody')">
         <div><span class="card-category">Transfers</span><h3 style="display:inline">Payd-to-Payd</h3></div>
         <span class="badge badge-idle" id="transfer-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="transferBody">
+        <p class="helper-text">Transfers funds between two Payd wallets (wallet-to-wallet, no external rails).</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const result = await payd.transfers.send({
+  receiverUsername: "recipient_user",
+  amount: 100,
+  narration: "Lunch money",
+  phoneNumber: "+254700000000",
+});</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>receiverUsername</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>amount</code></td><td>number</td><td>Yes</td></tr>
+            <tr><td><code>narration</code></td><td>string</td><td>Yes</td></tr>
+            <tr><td><code>phoneNumber</code></td><td>string</td><td class="optional">Optional</td></tr>
+            <tr><td><code>currency</code></td><td>string</td><td class="optional">Optional</td></tr>
+            <tr><td><code>walletType</code></td><td>"local" | "USD"</td><td class="optional">Optional</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ transactionReference }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group">
             <label>Receiver Username</label>
@@ -417,7 +696,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execTransfer()">Execute</button>
+          <button class="btn btn-primary" onclick="window.execTransfer()">Execute</button>
         </div>
         <div id="transfer-result"></div>
       </div>
@@ -426,11 +705,29 @@
     <!-- ── Webhooks ──────────────────────────────────────────────────── -->
     <div class="section-title">Webhooks</div>
     <div class="card">
-      <div class="card-header" onclick="toggleCard('whParseBody')">
+      <div class="card-header" onclick="window.toggleCard('whParseBody')">
         <div><span class="card-category">Webhooks</span><h3 style="display:inline">Parse Event</h3></div>
         <span class="badge badge-idle" id="wh-parse-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="whParseBody">
+        <p class="helper-text">Paste a raw webhook JSON payload to see the normalized event the SDK produces.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>app.post("/webhook", (req, res) => {
+  const event = payd.webhooks.parseEvent(req.body);
+
+  if (event.isSuccess) {
+    console.log(`Payment ${event.transactionReference} succeeded!`);
+    console.log(`Type: ${event.transactionType}`); // "receipt", "withdrawal"
+    console.log(`Amount: ${event.amount}`);
+  } else {
+    console.log(`Payment failed: ${event.remarks}`);
+  }
+
+  res.status(200).send("OK");
+});</pre>
+          <div class="doc-response">Returns: <code>{ isSuccess, transactionReference, transactionType, amount, remarks, ... }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group full">
             <label>Webhook JSON Body (paste a raw payload)</label>
@@ -438,22 +735,38 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execWhParse()">Parse</button>
-          <button class="btn btn-sm" onclick="loadFixture('kenya-success')">Kenya Success</button>
-          <button class="btn btn-sm" onclick="loadFixture('kenya-failure')">Kenya Failure</button>
-          <button class="btn btn-sm" onclick="loadFixture('pan-success')">Pan-African Success</button>
-          <button class="btn btn-sm" onclick="loadFixture('pan-failure')">Pan-African Failure</button>
+          <button class="btn btn-primary" onclick="window.execWhParse()">Parse</button>
+          <button class="btn btn-sm" onclick="window.loadFixture('kenya-success')">Kenya Success</button>
+          <button class="btn btn-sm" onclick="window.loadFixture('kenya-failure')">Kenya Failure</button>
+          <button class="btn btn-sm" onclick="window.loadFixture('pan-success')">Pan-African Success</button>
+          <button class="btn btn-sm" onclick="window.loadFixture('pan-failure')">Pan-African Failure</button>
         </div>
         <div id="wh-parse-result"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header" onclick="toggleCard('whVerifyBody')">
+      <div class="card-header" onclick="window.toggleCard('whVerifyBody')">
         <div><span class="card-category">Webhooks</span><h3 style="display:inline">Verify Signature</h3></div>
         <span class="badge badge-idle" id="wh-verify-badge">idle</span>
       </div>
       <div class="card-body collapsed" id="whVerifyBody">
+        <p class="helper-text">Verifies a webhook HMAC-SHA256 signature against the raw body and your webhook secret to ensure authenticity.</p>
+        <details class="doc-block">
+          <summary>SDK Code &amp; Fields</summary>
+<pre>const event = payd.webhooks.constructEvent(
+  rawBody,                                  // raw JSON string
+  req.headers["x-payd-connect-signature"],  // signature hex
+  process.env.WEBHOOK_SECRET,               // your secret
+);</pre>
+          <table class="doc-fields">
+            <tr><th>Parameter</th><th>Type</th><th>Required</th></tr>
+            <tr><td><code>body</code></td><td>string (raw JSON)</td><td>Yes</td></tr>
+            <tr><td><code>signature</code></td><td>string (hex)</td><td>Yes</td></tr>
+            <tr><td><code>secret</code></td><td>string</td><td>Yes</td></tr>
+          </table>
+          <div class="doc-response">Returns: <code>{ valid: true|false }</code></div>
+        </details>
         <div class="form-grid">
           <div class="form-group full">
             <label>Body (JSON string)</label>
@@ -469,7 +782,7 @@
           </div>
         </div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="execWhVerify()">Verify</button>
+          <button class="btn btn-primary" onclick="window.execWhVerify()">Verify</button>
         </div>
         <div id="wh-verify-result"></div>
       </div>
@@ -480,10 +793,11 @@
   <!-- ── Sidebar: Live Webhooks ──────────────────────────────────────── -->
   <div class="sidebar">
     <h2>Live Webhook Events</h2>
+    <p class="helper-text">Incoming webhook payloads for your session. Use your callback URL with the Payd API to see events here in real time.</p>
     <div class="subtitle" id="webhookUrl"></div>
     <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="btn btn-sm" onclick="copyWebhookUrl()">Copy URL</button>
-      <button class="btn btn-sm btn-danger" onclick="clearWebhooks()">Clear</button>
+      <button class="btn btn-sm" onclick="window.copyWebhookUrl()">Copy URL</button>
+      <button class="btn btn-sm btn-danger" onclick="window.clearWebhooks()">Clear</button>
     </div>
     <div id="webhookList">
       <div class="no-events">No events yet. Webhooks will appear here in real time.</div>
@@ -491,6 +805,6 @@
   </div>
 </div>
 
-<script src="/app.min.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

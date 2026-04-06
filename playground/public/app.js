@@ -73,7 +73,7 @@ function showResult(containerId, data) {
   if (ref) {
     const refLink = document.createElement("div");
     refLink.style.cssText = "margin-top:8px;font-size:12px;";
-    refLink.innerHTML = `Transaction Ref: <code style="color:var(--accent);cursor:pointer" onclick="lookupRef('${ref}')">${ref}</code> (click to look up)`;
+    refLink.innerHTML = `Transaction Ref: <code style="color:var(--accent);cursor:pointer" onclick="window.lookupRef('${ref}')">${ref}</code> (click to look up)`;
     el.appendChild(refLink);
   }
 
@@ -427,3 +427,27 @@ async function runAll() {
     ${r.status === "fail" ? `<div style="padding:4px 12px 8px;font-size:12px;color:var(--red)">${escapeHtml(r.reason || JSON.stringify(r.response?.error, null, 2))}</div>` : ""}
   `).join("");
 }
+
+// Expose handlers for inline onclick usage in index.html
+Object.assign(window, {
+  toggleCard,
+  runAll,
+  saveConfig,
+  disconnectConfig,
+  execBalances,
+  execNetworks,
+  execTxStatus,
+  execCollMpesa,
+  execCollCard,
+  execCollPan,
+  execPayMpesa,
+  execPayMerchant,
+  execPayPan,
+  execTransfer,
+  loadFixture,
+  execWhParse,
+  execWhVerify,
+  copyWebhookUrl,
+  clearWebhooks,
+  lookupRef,
+});
