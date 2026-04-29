@@ -18,7 +18,7 @@ payd-sdks/
     src/               # Source code
     tests/             # Unit tests (101 tests)
     examples/          # Runnable usage examples
-  test-app/            # Interactive test dashboard (Express + vanilla HTML)
+  playground/          # Interactive test dashboard (Express + vanilla HTML, local/internal use)
 ```
 
 ## Quick Start
@@ -71,15 +71,21 @@ npm run build        # compiles TypeScript → dist/
 npm test             # runs 101 unit tests to verify everything works
 ```
 
-### 2. Run the interactive test dashboard
+### 2. Run the interactive test dashboard (local/internal only)
 
 The test app lets you test every SDK operation from a web UI.
 
 ```bash
-cd ../test-app
+cd ../playground
 npm install
 npm start
 ```
+
+The playground is intentionally blocked in production by default.
+It is designed for local/internal testing only.
+
+- Default behavior: exits when `NODE_ENV=production`
+- Explicit override (not recommended): set `PAYD_PLAYGROUND_ALLOW_PRODUCTION=true`
 
 Open **http://localhost:3456** in your browser. You'll see:
 

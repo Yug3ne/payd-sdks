@@ -17,6 +17,15 @@ import { Webhooks } from "payd-node-sdk";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3456;
 const isProduction = process.env.NODE_ENV === "production";
+const allowPlaygroundInProduction = process.env.PAYD_PLAYGROUND_ALLOW_PRODUCTION === "true";
+
+if (isProduction && !allowPlaygroundInProduction) {
+  console.error(
+    "[Security] Refusing to start playground in production. " +
+      "Run locally/internal only, or set PAYD_PLAYGROUND_ALLOW_PRODUCTION=true for controlled environments.",
+  );
+  process.exit(1);
+}
 
 const app = express();
 app.set("trust proxy", isProduction ? 1 : false);
