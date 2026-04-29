@@ -1,0 +1,65 @@
+/* Payd SDK Documentation — Custom Theme */
+
+:root {
+  /* Brand colors */
+  --vp-c-brand-1: #10b981;
+  --vp-c-brand-2: #059669;
+  --vp-c-brand-3: #047857;
+  --vp-c-brand-soft: rgba(16, 185, 129, 0.14);
+
+  /* Hero gradient */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    120deg,
+    #10b981 30%,
+    #06b6d4
+  );
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    #10b98150 50%,
+    #06b6d450 50%
+  );
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  --vp-c-brand-1: #34d399;
+  --vp-c-brand-2: #10b981;
+  --vp-c-brand-3: #059669;
+  --vp-c-brand-soft: rgba(52, 211, 153, 0.14);
+}
+
+/* Better code blocks */
+.vp-doc div[class*="language-"] {
+  border-radius: 8px;
+}
+
+/* Feature card hover effect */
+.VPFeature {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.VPFeature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* API reference tables */
+.vp-doc table {
+  width: 100%;
+}
+
+.vp-doc th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better badge styling for method names */
+.vp-doc code {
+  font-size: 0.9em;
+}
