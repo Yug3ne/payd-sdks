@@ -54,3 +54,12 @@ def test_request_network_error_retries_and_raises() -> None:
 
     with pytest.raises(PaydNetworkError):
         client.request("POST", "/api/v2/p2p", body={"x": 1})
+
+
+@respx.mock
+def test_request_timeout_maps_to_network_error() -> None:
+    respx.post("https://api.payd.money/api/v2/p2p").mock(side_effect=httpx.ConnectTimeout("slow"))
+    client = PaydClient(api_username="alice", api_password="secret", max_retries=0)
+
+    with pytest.raises(PaydNetworkError):
+        client.request("POST", "/api/v2/p2p", body={"x": 1})

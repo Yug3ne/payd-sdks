@@ -1,11 +1,17 @@
 """Amount validation utilities."""
 
+import math
+
 from payd.errors import PaydValidationError
+
+
+def _is_valid_number(amount: object) -> bool:
+    return isinstance(amount, (int, float)) and not isinstance(amount, bool) and not math.isnan(amount)
 
 
 def validate_amount(amount: int | float, min_val: int | float, max_val: int | float, context: str) -> None:
     """Validate an amount is within the allowed range."""
-    if amount is None or not isinstance(amount, (int, float)):
+    if not _is_valid_number(amount):
         raise PaydValidationError("amount is required and must be a number", field="amount")
     if amount < min_val:
         raise PaydValidationError(
@@ -31,4 +37,10 @@ def validate_card_amount(amount: int | float) -> None:
 
 def validate_positive_amount(amount: int | float) -> None:
     """Validate a positive amount (for Pan-African and transfers)."""
-    validate_amount(amount, 0, float("inf"), "positive amount")
+    if not _is_valid_number(amount):
+        raise PaydValidationError("amount is required and must be a number", field="amount")
+    if amount <= 0:
+        raise PaydValidationError(
+            f"amount must be greater than 0. Got: {amount}",
+            field="amount",
+        )

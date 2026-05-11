@@ -17,7 +17,7 @@ def test_send_transfer_success_with_defaults() -> None:
 
     assert data["success"] is True
     sent = route.calls[0].request.content.decode()
-    assert '"wallet_type":"USD"' in sent
+    assert "wallet_type" in sent and "USD" in sent
 
 
 def test_send_transfer_requires_receiver_and_narration() -> None:

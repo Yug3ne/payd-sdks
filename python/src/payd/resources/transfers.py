@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from payd.response import resolve_transaction_reference
 from payd.validators import validate_international_phone, validate_positive_amount, validate_required
 
 
@@ -48,4 +49,15 @@ class Transfers:
         if resolved_wallet_type != "local":
             body["wallet_type"] = resolved_wallet_type
 
-        return self._client.request(method="POST", path="/api/v2/p2p", body=body)
+        data = self._client.request(method="POST", path="/api/v2/p2p", body=body)
+
+        return {
+            "success": bool(data.get("success")),
+            "message": str(data.get("message") or ""),
+            "status": str(data.get("status") or ""),
+            "transaction_reference": resolve_transaction_reference(data),
+            "tracking_id": str(data.get("trackingId") or ""),
+            "reference": str(data.get("reference") or ""),
+            "result": data.get("result"),
+            "_raw": data,
+        }

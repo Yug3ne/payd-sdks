@@ -9,7 +9,16 @@ from payd.errors import (
     PaydValidationError,
     PaydWebhookVerificationError,
 )
-from payd.resources import Transfers
+from payd.resources import (
+    Balances,
+    Collections,
+    DiscoveredNetwork,
+    NetworkDiscoveryResult,
+    Networks,
+    Payouts,
+    Transactions,
+    Transfers,
+)
 from payd.validators import (
     normalize_kenya_phone,
     validate_card_amount,
@@ -20,6 +29,7 @@ from payd.validators import (
     validate_positive_amount,
     validate_required,
 )
+from payd.webhooks import Webhooks, derive_transaction_type
 
 __all__ = [
     "PaydClient",
@@ -29,7 +39,16 @@ __all__ = [
     "PaydAPIError",
     "PaydNetworkError",
     "PaydWebhookVerificationError",
+    "Collections",
+    "Payouts",
     "Transfers",
+    "Networks",
+    "DiscoveredNetwork",
+    "NetworkDiscoveryResult",
+    "Transactions",
+    "Balances",
+    "Webhooks",
+    "derive_transaction_type",
     "validate_kenya_phone",
     "validate_international_phone",
     "normalize_kenya_phone",
