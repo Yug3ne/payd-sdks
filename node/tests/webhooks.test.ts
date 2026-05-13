@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Webhooks } from "../src/webhooks";
-import { PaydValidationError, PaydWebhookVerificationError } from "../src/errors";
+import { PaydValidationError } from "../src/errors";
 
 import kenyaSuccess from "../../shared/fixtures/webhooks/kenya-success.json";
 import kenyaFailure from "../../shared/fixtures/webhooks/kenya-failure.json";
@@ -161,58 +161,4 @@ describe("Webhooks", () => {
     });
   });
 
-  // ─── verify ─────────────────────────────────────────────────────────
-
-  describe("verify()", () => {
-    it("should verify a valid HMAC-SHA256 signature", () => {
-      const { createHmac } = require("node:crypto");
-      const secret = "test_webhook_secret";
-      const payload = JSON.stringify({ transaction_reference: "TEST123", success: true });
-
-      // Create expected signature (matching payd-connect signing logic)
-      const parsed = JSON.parse(payload);
-      const normalized = JSON.stringify(parsed, Object.keys(parsed).sort());
-      const signature = createHmac("sha256", secret).update(normalized).digest("hex");
-
-      expect(webhooks.verify(payload, signature, secret)).toBe(true);
-    });
-
-    it("should throw on invalid signature", () => {
-      const payload = JSON.stringify({ test: true });
-      expect(() =>
-        webhooks.verify(payload, "invalid_signature_hex", "secret"),
-      ).toThrow(PaydWebhookVerificationError);
-    });
-
-    it("should throw when missing required params", () => {
-      expect(() => webhooks.verify("", "sig", "secret")).toThrow(
-        PaydWebhookVerificationError,
-      );
-      expect(() => webhooks.verify("body", "", "secret")).toThrow(
-        PaydWebhookVerificationError,
-      );
-      expect(() => webhooks.verify("body", "sig", "")).toThrow(
-        PaydWebhookVerificationError,
-      );
-    });
-  });
-
-  // ─── constructEvent ─────────────────────────────────────────────────
-
-  describe("constructEvent()", () => {
-    it("should verify and parse in one step", () => {
-      const { createHmac } = require("node:crypto");
-      const secret = "my_secret";
-      const payload = JSON.stringify(kenyaSuccess);
-
-      const parsed = JSON.parse(payload);
-      const normalized = JSON.stringify(parsed, Object.keys(parsed).sort());
-      const signature = createHmac("sha256", secret).update(normalized).digest("hex");
-
-      const event = webhooks.constructEvent(payload, signature, secret);
-
-      expect(event.isSuccess).toBe(true);
-      expect(event.transactionReference).toBe("9BD103739849eR");
-    });
-  });
 });

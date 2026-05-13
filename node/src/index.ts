@@ -37,7 +37,6 @@ export {
   PaydValidationError,
   PaydAPIError,
   PaydNetworkError,
-  PaydWebhookVerificationError,
 } from "./errors";
 
 // Resource classes (for type imports)

@@ -65,13 +65,3 @@ export class PaydNetworkError extends PaydError {
     this.cause = cause;
   }
 }
-
-/**
- * Thrown when webhook signature verification fails.
- */
-export class PaydWebhookVerificationError extends PaydError {
-  constructor(message = "Webhook signature verification failed.") {
-    super(message);
-    this.name = "PaydWebhookVerificationError";
-  }
-}

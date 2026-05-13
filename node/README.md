@@ -188,17 +188,6 @@ app.post("/webhook", (req, res) => {
 });
 ```
 
-### Verify webhook signatures
-
-```typescript
-// If using Payd Connect webhook signing
-const event = payd.webhooks.constructEvent(
-  rawBody,                          // raw JSON string
-  req.headers["x-payd-connect-signature"],
-  process.env.WEBHOOK_SECRET!,
-);
-```
-
 ## Client Options
 
 ```typescript

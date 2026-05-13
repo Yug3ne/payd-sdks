@@ -1,7 +1,6 @@
-import { createHmac } from "node:crypto";
 import type { WebhookEvent } from "./types/webhooks";
 import type { TransactionKind } from "./types/common";
-import { PaydWebhookVerificationError, PaydValidationError } from "./errors";
+import { PaydValidationError } from "./errors";
 
 /**
  * Webhook parsing and verification utilities.
@@ -75,67 +74,6 @@ export class Webhooks {
     };
   }
 
-  /**
-   * Verify a webhook signature using HMAC-SHA256.
-   *
-   * Use this if your webhooks are delivered through Payd Connect or a
-   * middleware layer that signs payloads.
-   *
-   * @param body - Raw webhook body string
-   * @param signature - Signature from the X-Payd-Connect-Signature header
-   * @param secret - Your webhook signing secret
-   * @returns true if the signature is valid
-   * @throws PaydWebhookVerificationError if verification fails
-   */
-  verify(body: string, signature: string, secret: string): boolean {
-    if (!body || !signature || !secret) {
-      throw new PaydWebhookVerificationError(
-        "body, signature, and secret are all required for webhook verification.",
-      );
-    }
-
-    // Normalize body: parse and re-serialize with sorted keys (matching payd-connect signing)
-    let normalizedBody: string;
-    try {
-      const parsed = JSON.parse(body);
-      normalizedBody = JSON.stringify(parsed, Object.keys(parsed).sort());
-    } catch {
-      normalizedBody = body;
-    }
-
-    const expectedSignature = createHmac("sha256", secret)
-      .update(normalizedBody)
-      .digest("hex");
-
-    // Timing-safe comparison
-    const sigBuffer = Buffer.from(signature, "hex");
-    const expectedBuffer = Buffer.from(expectedSignature, "hex");
-
-    if (sigBuffer.length !== expectedBuffer.length) {
-      throw new PaydWebhookVerificationError();
-    }
-
-    const { timingSafeEqual } = require("node:crypto");
-    if (!timingSafeEqual(sigBuffer, expectedBuffer)) {
-      throw new PaydWebhookVerificationError();
-    }
-
-    return true;
-  }
-
-  /**
-   * Verify and parse a webhook in one step.
-   *
-   * @param body - Raw webhook body string
-   * @param signature - Signature from the X-Payd-Connect-Signature header
-   * @param secret - Your webhook signing secret
-   * @returns Typed WebhookEvent
-   * @throws PaydWebhookVerificationError if signature is invalid
-   */
-  constructEvent(body: string, signature: string, secret: string): WebhookEvent {
-    this.verify(body, signature, secret);
-    return this.parseEvent(body);
-  }
 }
 
 /**
